@@ -10,7 +10,10 @@
 	}
 </script>
 
-<div class="event-card" style="background-color: {event.color};" on:click={() => openEvent(event)} on:keydown={(e) => e.key === 'Enter' && openEvent(event)} role="button" tabindex="0">
+<div class="event-card" style="background-color: {event.color}; {event.backgroundUrl ? `background-image: url('${event.backgroundUrl}'); background-size: cover; background-position: center;` : ''}" on:click={() => openEvent(event)} on:keydown={(e) => e.key === 'Enter' && openEvent(event)} role="button" tabindex="0">
+	{#if event.backgroundUrl}
+		<div class="background-overlay"></div>
+	{/if}
 	{#if isLoggedIn}
 		<button 
 			class="complete-button" 
@@ -41,6 +44,16 @@
 		flex-direction: column;
 		font-weight: 800;
 		position: relative;
+		overflow: hidden;
+	}
+
+	.background-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		pointer-events: none;
 	}
 
 	.event-card:hover {

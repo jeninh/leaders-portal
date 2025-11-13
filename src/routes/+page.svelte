@@ -120,22 +120,26 @@
 	{/if}
 
 	<main>
-		<h2 class="section-title">Web development series:</h2>
-		
-		<EventGrid {events} category="Webdev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+		<div class="category-bubble webdev">
+			<h2 class="section-title">Web development series:</h2>
+			<EventGrid {events} category="Webdev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+		</div>
 
-		<h2 class="section-title">CAD series:</h2>
-		
-		<EventGrid {events} category="CAD" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+		<div class="category-bubble cad">
+			<h2 class="section-title">CAD series:</h2>
+			<EventGrid {events} category="CAD" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+		</div>
 
-		<h2 class="section-title">Other Clubs YSWS:</h2>
-		
-		<EventGrid {events} category="Other" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+		<div class="category-bubble other">
+			<h2 class="section-title">Other Clubs YSWS:</h2>
+			<EventGrid {events} category="Other" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+		</div>
 
 		{#if hasCompletedEvents}
-			<h2 class="section-title">Completed YSWS:</h2>
-			
-			<EventGrid {events} category="Completed" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+			<div class="category-bubble completed">
+				<h2 class="section-title">Completed YSWS:</h2>
+				<EventGrid {events} category="Completed" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+			</div>
 		{/if}
 	</main>
 </div>
@@ -186,7 +190,10 @@
 		color: #1f2d3d;
 		margin: 0;
 		padding: 0;
+
 	}
+
+
 
 	.container {
 		max-width: 1024px;
@@ -250,11 +257,42 @@
 	}
 
 
+	.category-bubble {
+		padding: 32px;
+		border-radius: 24px;
+		margin-bottom: 24px;
+		transition: transform 0.3s
+	}
+
+	.category-bubble:hover {
+		transform: translateY(-4px);
+	}
+
+	.category-bubble.webdev {
+		background: #dbeafe;
+		border: 3px solid #3b82f6;
+	}
+
+	.category-bubble.cad {
+		background: #fef3c7;
+		border: 3px solid #f59e0b;
+	}
+
+	.category-bubble.other {
+		background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+		border: 3px solid #ec4899;
+	}
+
+	.category-bubble.completed {
+		background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+		border: 3px solid #10b981;
+	}
+
 	.section-title {
 		color: #1f2d3d;
 		font-weight: bold;
 		font-size: 32px;
-		margin: 32px 0 16px 0;
+		margin: 0 0 16px 0;
 	}
 
 	.banner {
