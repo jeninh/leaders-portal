@@ -117,6 +117,14 @@
 				</svg>
 			</button>
 		</div>
+	{:else}
+		<button class="help-button" onclick={openNewLeaderModal} aria-label="New leader help">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+				<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+				<circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+			</svg>
+		</button>
 	{/if}
 
 	<main>
@@ -347,6 +355,38 @@
 
 	.banner-close:hover {
 		background-color: rgba(0, 0, 0, 0.1);
+	}
+
+	.help-button {
+		position: fixed;
+		bottom: 24px;
+		right: 24px;
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background-color: #ec3750;
+		color: white;
+		border: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s ease;
+		z-index: 100;
+	}
+
+	.help-button:hover {
+		background-color: #d63447;
+		transform: translateY(-2px);
+	}
+
+	@media (max-width: 640px) {
+		.help-button {
+			width: 48px;
+			height: 48px;
+			bottom: 16px;
+			right: 16px;
+		}
 	}
 
 	footer {
