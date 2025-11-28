@@ -168,12 +168,14 @@
 
 	:global(body) {
 		font-family: 'Phantom Sans', sans-serif;
-		background-color: #ffffff;
+		background: url("./orpheus.jpg") center/cover;
 		color: #1f2d3d;
 		margin: 0;
 		padding: 0;
 	}
-
+	.container::before {
+		filter: blur(3px);
+	}
 	.container {
 		min-height: 100vh;
 		display: flex;
