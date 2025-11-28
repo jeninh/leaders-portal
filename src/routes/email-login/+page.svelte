@@ -176,7 +176,7 @@
 	.container {
 		min-height: 100vh;
 		display: flex;
-		background: url("./orpheus.jpg") center/cover;
+		background: url("/orpheus.jpg") center/cover;
 		align-items: center;
 		justify-content: center;
 		padding: 16px;
