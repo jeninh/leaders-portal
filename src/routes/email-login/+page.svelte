@@ -173,9 +173,7 @@
 		margin: 0;
 		padding: 0;
 	}
-	.container::before {
-		filter: blur(3px);
-	}
+	
 	.container {
 		min-height: 100vh;
 		display: flex;
