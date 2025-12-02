@@ -1,5 +1,15 @@
 import { getClubLevel, getClubShips, getClubsForLeaderEmail } from './clubapi.js';
 
+function parseShips(ships) {
+	if (!ships) return [];
+	if (Array.isArray(ships)) return ships;
+	try {
+		return JSON.parse(ships);
+	} catch {
+		return [];
+	}
+}
+
 export async function syncClubDataFromApi(knex, clubName) {
 	console.log('[SyncClubs] syncClubDataFromApi called for:', clubName);
 	const club = await knex('clubs').where({ name: clubName }).first();
@@ -16,7 +26,7 @@ export async function syncClubDataFromApi(knex, clubName) {
 		console.log('[SyncClubs] Using cached data for:', clubName);
 		return {
 			...club,
-			ships: club.ships || []
+			ships: parseShips(club.ships)
 		};
 	}
 
@@ -57,7 +67,7 @@ export async function syncAllUserClubs(knex, userId) {
 			return {
 				...club,
 				level: syncedData?.level || club.level,
-				ships: syncedData?.ships || club.ships || []
+				ships: syncedData?.ships || parseShips(club.ships)
 			};
 		})
 	);
@@ -100,14 +110,18 @@ export async function syncEmailLeaderClubs(knex, email) {
 			const CACHE_DURATION_MS = 60 * 60 * 1000;
 			const now = new Date();
 			
-			if (dbClub.airtable_synced_at && (now - new Date(dbClub.airtable_synced_at)) < CACHE_DURATION_MS) {
+			const cachedShips = parseShips(dbClub.ships);
+			const hasValidShips = cachedShips.length > 0 && cachedShips.every(s => s.name !== 'Unnamed Ship');
+			
+			if (dbClub.airtable_synced_at && (now - new Date(dbClub.airtable_synced_at)) < CACHE_DURATION_MS && hasValidShips) {
 				console.log('[SyncClubs] Using cached data for:', club.name, 'dbClub.level:', dbClub.level, 'club.level:', club.level);
 				return {
 					...club,
 					level: club.level || dbClub.level,
-					ships: dbClub.ships || []
+					ships: cachedShips
 				};
 			}
+			console.log('[SyncClubs] Cache invalid or ships need refresh for:', club.name);
 
 			console.log('[SyncClubs] Fetching ships for:', club.name);
 			const ships = await getClubShips(club.name);

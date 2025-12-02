@@ -85,14 +85,19 @@ export async function getClubLevel(clubName) {
 export async function getClubShips(clubName) {
 	try {
 		const data = await fetchClubApi('/ships', { club_name: clubName });
+		console.log('[ClubAPI] getClubShips raw data:', JSON.stringify(data, null, 2));
 		if (!Array.isArray(data)) {
 			return [];
 		}
-		return data.map((ship) => ({
-			name: ship['YSWS–Name (from Unified YSWS Database)']?.[0] || 'Unnamed Ship',
-			codeUrl: ship.code_url || null,
-			memberName: ship.member_name || null
-		}));
+		return data.map((ship) => {
+			const fields = ship.fields || ship;
+			console.log('[ClubAPI] Ship fields:', JSON.stringify(fields, null, 2));
+			return {
+				name: fields['YSWS–Name (from Unified YSWS Database)']?.[0] || fields.name || 'Unnamed Ship',
+				codeUrl: fields.code_url || null,
+				memberName: fields.member_name || null
+			};
+		});
 	} catch (error) {
 		console.error(`Error fetching ships for club ${clubName}:`, error);
 		return [];
