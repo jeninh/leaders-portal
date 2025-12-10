@@ -152,6 +152,34 @@ export async function deleteMember(memberName) {
 	return data;
 }
 
+export async function sendAnnouncement(clubName, message) {
+	const url = new URL('/announce', CLUB_API_BASE);
+	url.searchParams.append('club', clubName);
+	url.searchParams.append('message', message);
+
+	const headers = {};
+	if (env.CLUB_API_KEY) {
+		headers['Authorization'] = env.CLUB_API_KEY;
+	}
+
+	console.log('[ClubAPI] Sending announcement to club:', clubName);
+
+	const response = await fetch(url.toString(), {
+		method: 'POST',
+		headers
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('[ClubAPI] Send announcement error:', errorText);
+		throw new Error(`Failed to send announcement: ${response.status}`);
+	}
+
+	const data = await response.json();
+	console.log('[ClubAPI] Send announcement result:', data);
+	return data;
+}
+
 export async function getClubsForLeaderEmail(email) {
 	console.log('[ClubAPI] getClubsForLeaderEmail called with:', email);
 	try {

@@ -1,12 +1,29 @@
 <script>
 	import LevelCard from '$lib/LevelCard.svelte';
 	
-	let { data } = $props();
+	let { data, form } = $props();
+
+	let showAnnouncementModal = $state(false);
+	let selectedClubName = $state('');
+	let announcementMessage = $state('');
+	let isSending = $state(false);
 
 	function confirmRemove(event, memberName) {
 		if (!confirm(`Remove ${memberName} from the club?`)) {
 			event.preventDefault();
 		}
+	}
+
+	function openAnnouncementModal(clubName) {
+		selectedClubName = clubName;
+		announcementMessage = '';
+		showAnnouncementModal = true;
+	}
+
+	function closeAnnouncementModal() {
+		showAnnouncementModal = false;
+		selectedClubName = '';
+		announcementMessage = '';
 	}
 </script>
 
@@ -40,16 +57,23 @@
 									<span class="club-level">{club.level}</span>
 								{/if}
 								<span class="club-role {club.role}">{club.role}</span>
-							</div>
+								</div>
 						</div>
 
 						<LevelCard currentLevel={club.level || 'Bronze'} clubShips={club.ships.length || 0} />
 						
-					
+						
 
 						{#if club.members && club.members.length > 0}
 							<div class="members-section">
-								<h4 class="members-title">Members <span class="member-count">{club.members.length}</span></h4>
+								<div class="members-header">
+									<h4 class="members-title">Members:</h4>
+									{#if club.role === 'leader'}
+										<button type="button" class="announce-btn" onclick={() => openAnnouncementModal(club.name)}>
+											Send Announcement
+										</button>
+									{/if}
+								</div>
 								<div class="members-list">
 									{#each club.members as member}
 										<span class="member-pill">
@@ -102,6 +126,47 @@
 		{/if}
 	</section>
 </div>
+
+{#if showAnnouncementModal}
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<div class="modal-overlay" role="dialog" aria-modal="true" tabindex="-1" onclick={closeAnnouncementModal} onkeydown={(e) => e.key === 'Escape' && closeAnnouncementModal()}>
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+		<div class="modal" role="document" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+			<div class="modal-header">
+				<h3>Send Announcement to {selectedClubName}</h3>
+				<button type="button" class="modal-close" onclick={closeAnnouncementModal}>×</button>
+			</div>
+			<form method="POST" action="?/sendAnnouncement" onsubmit={() => isSending = true}>
+				<input type="hidden" name="clubName" value={selectedClubName} />
+				<div class="modal-body">
+					{#if form?.error}
+						<div class="error-message">{form.error}</div>
+					{/if}
+					{#if form?.success}
+						<div class="success-message">Announcement sent to {form.membersUpdated} members!</div>
+					{/if}
+					<label for="message">Message</label>
+					<textarea
+						id="message"
+						name="message"
+						bind:value={announcementMessage}
+						placeholder="Write your announcement here..."
+						rows="5"
+						maxlength="1000"
+						required
+					></textarea>
+					<div class="char-count">{announcementMessage.length}/1000</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="cancel-btn" onclick={closeAnnouncementModal}>Cancel</button>
+					<button type="submit" class="send-btn" disabled={isSending || !announcementMessage.trim()}>
+						{isSending ? 'Sending...' : 'Send Announcement'}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
 
 <style>
 	@font-face {
@@ -326,11 +391,18 @@
 		border-top: 1px solid #e5e7eb;
 	}
 
+	.members-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 12px;
+	}
+
 	.members-title {
 		font-size: 16px;
 		font-weight: 600;
 		color: #1f2d3d;
-		margin: 0 0 12px 0;
+		margin: 0;
 	}
 
 	.members-list {
@@ -492,5 +564,169 @@
 	.ship-link:hover {
 		background-color: #ec3750;
 		color: white;
+	}
+
+	.announce-btn {
+		padding: 4px 12px;
+		background-color: #338eda;
+		color: white;
+		border: none;
+		border-radius: 6px;
+		font-size: 12px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+		font-family: 'Phantom Sans', sans-serif;
+	}
+
+	.announce-btn:hover {
+		background-color: #2a7bc8;
+	}
+
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
+
+	.modal {
+		background: white;
+		border-radius: 12px;
+		width: 90%;
+		max-width: 500px;
+		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px 24px;
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.modal-header h3 {
+		margin: 0;
+		font-size: 18px;
+		color: #1f2d3d;
+	}
+
+	.modal-close {
+		background: none;
+		border: none;
+		font-size: 24px;
+		color: #6b7280;
+		cursor: pointer;
+		padding: 0;
+		line-height: 1;
+	}
+
+	.modal-close:hover {
+		color: #1f2d3d;
+	}
+
+	.modal-body {
+		padding: 24px;
+	}
+
+	.modal-body label {
+		display: block;
+		font-size: 14px;
+		font-weight: 600;
+		color: #1f2d3d;
+		margin-bottom: 8px;
+	}
+
+	.modal-body textarea {
+		width: 100%;
+		padding: 12px;
+		border: 2px solid #e5e7eb;
+		border-radius: 6px;
+		font-size: 14px;
+		font-family: 'Phantom Sans', sans-serif;
+		resize: vertical;
+		box-sizing: border-box;
+	}
+
+	.modal-body textarea:focus {
+		outline: none;
+		border-color: #338eda;
+	}
+
+	.char-count {
+		text-align: right;
+		font-size: 12px;
+		color: #6b7280;
+		margin-top: 4px;
+	}
+
+	.modal-footer {
+		display: flex;
+		justify-content: flex-end;
+		gap: 12px;
+		padding: 16px 24px;
+		border-top: 1px solid #e5e7eb;
+	}
+
+	.cancel-btn {
+		padding: 10px 20px;
+		background: #f3f4f6;
+		color: #1f2d3d;
+		border: none;
+		border-radius: 6px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		font-family: 'Phantom Sans', sans-serif;
+	}
+
+	.cancel-btn:hover {
+		background: #e5e7eb;
+	}
+
+	.send-btn {
+		padding: 10px 20px;
+		background: #338eda;
+		color: white;
+		border: none;
+		border-radius: 6px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		font-family: 'Phantom Sans', sans-serif;
+	}
+
+	.send-btn:hover:not(:disabled) {
+		background: #2a7bc8;
+	}
+
+	.send-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.error-message {
+		background: #fef2f2;
+		color: #dc2626;
+		padding: 12px;
+		border-radius: 6px;
+		margin-bottom: 16px;
+		font-size: 14px;
+	}
+
+	.success-message {
+		background: #f0fdf4;
+		color: #16a34a;
+		padding: 12px;
+		border-radius: 6px;
+		margin-bottom: 16px;
+		font-size: 14px;
 	}
 </style>
