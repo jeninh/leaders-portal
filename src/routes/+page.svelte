@@ -96,6 +96,7 @@
 		<div class="header-buttons">
 			{#if data.user}
 				<a href="/my-club" class="nav-button">My Club</a>
+				<a href="/settings" class="nav-button secondary">Settings</a>
 				{#if data.user.isAdmin}
 					<a href="/admin" class="nav-button">Admin</a>
 				{/if}
@@ -103,7 +104,8 @@
 					<button type="submit" class="nav-button">Logout</button>
 				</form>
 			{:else}
-				<a href="/email-login" class="nav-button">Sign in with Email</a>
+				<a href="/auth/login" class="nav-button">Sign in with Hack Club</a>
+				<a href="/email-login" class="nav-button secondary">Sign in with Email</a>
 			{/if}
 		</div>
 	</header>

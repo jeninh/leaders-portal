@@ -1,6 +1,6 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { getKnex } from '$lib/server/db/knex.js';
-import { getClubsForEmail } from '$lib/server/sync-clubs.js';
+import { getClubsForEmail, getEffectiveEmailForUser } from '$lib/server/sync-clubs.js';
 import { deleteMember, sendAnnouncement } from '$lib/server/clubapi.js';
 
 export async function load({ locals }) {
@@ -14,7 +14,8 @@ export async function load({ locals }) {
 	const user = await knex('users').where({ id: locals.userId }).first();
 	console.log('[MyClub] User from DB:', user ? { id: user.id, email: user.email, provider: user.provider } : null);
 
-	const clubs = await getClubsForEmail(user.email);
+	const effectiveEmail = getEffectiveEmailForUser(user);
+	const clubs = await getClubsForEmail(effectiveEmail);
 
 	console.log('[MyClub] Returning', clubs?.length, 'clubs');
 	return {
@@ -39,7 +40,8 @@ export const actions = {
 
 		const knex = getKnex();
 		const user = await knex('users').where({ id: locals.userId }).first();
-		const clubs = await getClubsForEmail(user.email);
+		const effectiveEmail = getEffectiveEmailForUser(user);
+		const clubs = await getClubsForEmail(effectiveEmail);
 
 		const club = clubs.find(c => c.name === clubName);
 		if (!club) {
@@ -78,7 +80,8 @@ export const actions = {
 
 		const knex = getKnex();
 		const user = await knex('users').where({ id: locals.userId }).first();
-		const clubs = await getClubsForEmail(user.email);
+		const effectiveEmail = getEffectiveEmailForUser(user);
+		const clubs = await getClubsForEmail(effectiveEmail);
 
 		const club = clubs.find(c => c.name === clubName);
 		if (!club) {

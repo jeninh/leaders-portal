@@ -44,6 +44,19 @@ export async function getUserPublicById(knex, userId) {
 		lastName: u.last_name,
 		email: u.email,
 		identityVerified: u.identity_verified,
-		isAdmin: !!u.is_admin
+		isAdmin: !!u.is_admin,
+		provider: u.provider,
+		hackclubAuthId: u.hackclub_auth_id || null,
+		hackclubPrimaryEmail: u.hackclub_primary_email || null,
+		hackclubSlackId: u.hackclub_slack_id || null
 	};
+}
+
+export async function getEffectiveEmail(knex, userId) {
+	const u = await knex('users').where({ id: userId }).first();
+	if (!u) return null;
+	if (u.provider === 'hackclub_auth' && u.hackclub_primary_email) {
+		return u.hackclub_primary_email;
+	}
+	return u.email;
 }

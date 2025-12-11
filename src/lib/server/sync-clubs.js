@@ -1,5 +1,12 @@
 import { getClubLevel, getClubShips, getClubMembers, getClubsForLeaderEmail } from './clubapi.js';
 
+export function getEffectiveEmailForUser(user) {
+	if (user.provider === 'hackclub_auth' && user.hackclub_primary_email) {
+		return user.hackclub_primary_email;
+	}
+	return user.email;
+}
+
 export async function getClubDataFromApi(clubName) {
 	console.log('[SyncClubs] getClubDataFromApi called for:', clubName);
 
