@@ -3,8 +3,11 @@ import { getKnex } from '$lib/server/db/knex.js';
 import { findSessionByTokenHash, touchSession, deleteSessionById } from '$lib/server/auth/sessions.js';
 import { getUserPublicById } from '$lib/server/auth/users.js';
 import { refreshIfNeeded } from '$lib/server/auth/tokens.js';
+import { startCacheScheduler } from '$lib/server/cache-scheduler.js';
 
 const SESSION_COOKIE = 'sid';
+
+startCacheScheduler();
 
 export async function handle({ event, resolve }) {
 	const knex = getKnex();

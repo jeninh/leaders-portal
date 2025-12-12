@@ -1,24 +1,37 @@
 <script>
 	import LevelCard from '$lib/LevelCard.svelte';
+	import RefreshButton from '$lib/RefreshButton.svelte';
 	
 	let { data } = $props();
+	let club = $state(data.club);
+
+	function handleRefresh(refreshedClub) {
+		club = {
+			...club,
+			...refreshedClub,
+			role: club.role
+		};
+	}
 </script>
 
 <svelte:head>
-	<title>Ships - {data.club.name} - Clubs Event Portal</title>
+	<title>Ships - {club.name} - Clubs Event Portal</title>
 </svelte:head>
 
 <div class="container">
 	<header>
 		<div class="header-left">
 			<a href="/my-club" class="back-link">← Back to My Club</a>
-			<h1 class="page-title">{data.club.name}</h1>
+			<h1 class="page-title">{club.name}</h1>
 			<p class="page-subtitle">Ships</p>
+		</div>
+		<div class="header-buttons">
+			<RefreshButton clubName={club.name} onRefresh={handleRefresh} />
 		</div>
 	</header>
 
 	<div class="level-section">
-		<LevelCard currentLevel={data.club.level || 'Bronze'} clubShips={data.club.ships.length || 0} />
+		<LevelCard currentLevel={club.level || 'Bronze'} clubShips={club.ships.length || 0} />
 	</div>
 
 	<div class="submit-banner">
@@ -32,11 +45,11 @@
 	</div>
 
 	<section class="ships-section">
-		<h2 class="section-title">All Ships ({data.club.ships.length})</h2>
+		<h2 class="section-title">All Ships ({club.ships.length})</h2>
 		
-		{#if data.club.ships && data.club.ships.length > 0}
+		{#if club.ships && club.ships.length > 0}
 			<div class="ships-grid">
-				{#each data.club.ships as ship}
+				{#each club.ships as ship}
 					<div class="ship-card">
 						<div class="ship-icon">🚀</div>
 						<div class="ship-info">
@@ -87,6 +100,12 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
+	}
+
+	.header-buttons {
+		display: flex;
+		gap: 12px;
+		align-items: center;
 	}
 
 	.back-link {

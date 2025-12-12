@@ -1,5 +1,16 @@
 <script>
+	import RefreshButton from '$lib/RefreshButton.svelte';
+	
 	let { data, form } = $props();
+	let club = $state(data.club);
+
+	function handleRefresh(refreshedClub) {
+		club = {
+			...club,
+			...refreshedClub,
+			role: club.role
+		};
+	}
 
 	let showAnnouncementModal = $state(false);
 	let announcementMessage = $state('');
@@ -82,18 +93,19 @@
 </script>
 
 <svelte:head>
-	<title>Members - {data.club.name} - Clubs Event Portal</title>
+	<title>Members - {club.name} - Clubs Event Portal</title>
 </svelte:head>
 
 <div class="container">
 	<header>
 		<div class="header-left">
 			<a href="/my-club" class="back-link">← Back to My Club</a>
-			<h1 class="page-title">{data.club.name}</h1>
+			<h1 class="page-title">{club.name}</h1>
 			<p class="page-subtitle">Members</p>
 		</div>
 		<div class="header-buttons">
-			{#if data.club.role === 'leader'}
+			<RefreshButton clubName={club.name} onRefresh={handleRefresh} />
+			{#if club.role === 'leader'}
 				<button type="button" class="add-btn" onclick={openAddModal}>
 					+ Add Member
 				</button>
@@ -104,11 +116,11 @@
 		</div>
 	</header>
 
-	{#if data.club.joinCode}
+	{#if club.joinCode}
 		<div class="invite-banner">
 			<span class="invite-label">Invite new members:</span>
-			<a href="https://hack.club/join/{data.club.joinCode}" target="_blank" rel="noopener noreferrer" class="invite-link">
-				hack.club/join/{data.club.joinCode}
+			<a href="https://hack.club/join/{club.joinCode}" target="_blank" rel="noopener noreferrer" class="invite-link">
+				hack.club/join/{club.joinCode}
 			</a>
 		</div>
 	{/if}
@@ -122,15 +134,15 @@
 	{/if}
 
 	<section class="members-section">
-		{#if data.club.members && data.club.members.length > 0}
+		{#if club.members && club.members.length > 0}
 			<div class="members-grid">
-				{#each data.club.members as member}
+				{#each club.members as member}
 					<div class="member-card">
 						<div class="member-avatar">{member.charAt(0).toUpperCase()}</div>
 						<div class="member-info">
 							<span class="member-name">{member}</span>
 						</div>
-						{#if data.club.role === 'leader'}
+						{#if club.role === 'leader'}
 							<button type="button" class="edit-btn" title="Edit member" onclick={() => openEditModal(member)}>✎</button>
 							<form method="POST" action="?/removeMember" class="remove-form" onsubmit={(e) => confirmRemove(e, member)}>
 								<input type="hidden" name="memberName" value={member} />
@@ -154,7 +166,7 @@
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div class="modal" role="document" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
 			<div class="modal-header">
-				<h3>Send Announcement to {data.club.name}</h3>
+				<h3>Send Announcement to {club.name}</h3>
 				<button type="button" class="modal-close" onclick={closeAnnouncementModal}>×</button>
 			</div>
 			<form method="POST" action="?/sendAnnouncement" onsubmit={() => isSending = true}>

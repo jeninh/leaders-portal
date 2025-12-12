@@ -1,7 +1,22 @@
 <script>
 	import LevelCard from '$lib/LevelCard.svelte';
+	import RefreshButton from '$lib/RefreshButton.svelte';
 	
 	let { data } = $props();
+	let clubs = $state(data.clubs);
+
+	function handleRefresh(clubName, refreshedClub) {
+		clubs = clubs.map(c => {
+			if (c.name === clubName) {
+				return {
+					...c,
+					...refreshedClub,
+					role: c.role
+				};
+			}
+			return c;
+		});
+	}
 </script>
 
 <svelte:head>
@@ -20,13 +35,14 @@
 	</header>
 
 	<section class="clubs-info">
-		{#if data.clubs.length > 0}
+		{#if clubs.length > 0}
 			<div class="clubs-grid">
-				{#each data.clubs as club}
+				{#each clubs as club}
 					<div class="club-card">
 						<div class="club-header">
 							<h3 class="club-name">{club.name}</h3>
 							<div class="club-badges">
+								<RefreshButton clubName={club.name} onRefresh={(refreshedClub) => handleRefresh(club.name, refreshedClub)} />
 								{#if club.level}
 									<span class="club-level">{club.level}</span>
 								{/if}
