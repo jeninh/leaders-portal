@@ -268,6 +268,16 @@ export async function createMember(name, email, joinCode) {
 	return data;
 }
 
+export async function getClubAmbassador(clubName) {
+	try {
+		const data = await fetchClubApi('/club/ambassador', { name: clubName });
+		return data;
+	} catch (error) {
+		console.error(`Error fetching ambassador for club ${clubName}:`, error);
+		return null;
+	}
+}
+
 export async function getClubsForLeaderEmail(email) {
 	console.log('[ClubAPI] getClubsForLeaderEmail called with:', email);
 	try {

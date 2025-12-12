@@ -4,6 +4,7 @@
 	
 	let { data } = $props();
 	let clubs = $state(data.clubs);
+	let helpModal = $state({ open: false, clubName: null, loading: false, ambassador: null, error: null });
 
 	function handleRefresh(clubName, refreshedClub) {
 		clubs = clubs.map(c => {
@@ -16,6 +17,26 @@
 			}
 			return c;
 		});
+	}
+
+	async function openHelpModal(clubName) {
+		helpModal = { open: true, clubName, loading: true, ambassador: null, error: null };
+		try {
+			const response = await fetch(`/api/club/ambassador?club_name=${encodeURIComponent(clubName)}`);
+			if (!response.ok) {
+				const data = await response.json();
+				helpModal = { ...helpModal, loading: false, error: data.error || 'Failed to load ambassador' };
+				return;
+			}
+			const ambassador = await response.json();
+			helpModal = { ...helpModal, loading: false, ambassador };
+		} catch (err) {
+			helpModal = { ...helpModal, loading: false, error: 'Failed to load ambassador' };
+		}
+	}
+
+	function closeHelpModal() {
+		helpModal = { open: false, clubName: null, loading: false, ambassador: null, error: null };
 	}
 </script>
 
@@ -42,6 +63,15 @@
 						<div class="club-header">
 							<h3 class="club-name">{club.name}</h3>
 							<div class="club-badges">
+								<button class="contact-us-button" onclick={() => openHelpModal(club.name)} title="Contact your ambassador">
+									<img 
+										src="https://icons.hackclub.com/api/icons/black/message-simple-fill" 
+										alt="Contact icon"
+										width="24"
+										height="24"
+									/>
+									<span>Contact Us</span>
+								</button>
 								<RefreshButton clubName={club.name} onRefresh={(refreshedClub) => handleRefresh(club.name, refreshedClub)} />
 								{#if club.level}
 									<span class="club-level">{club.level}</span>
@@ -81,6 +111,40 @@
 		{/if}
 	</section>
 </div>
+
+{#if helpModal.open}
+	<div class="modal-overlay" role="button" tabindex="-1" onclick={closeHelpModal} onkeydown={(e) => e.key === 'Escape' && closeHelpModal()}>
+		<div class="modal" role="dialog" aria-modal="true" tabindex="-1" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+			<div class="modal-header">
+				<h2>Contact Us</h2>
+				<button class="modal-close" onclick={closeHelpModal}>&times;</button>
+			</div>
+			<div class="modal-body">
+				{#if helpModal.loading}
+					<p class="loading-text">Loading ambassador info...</p>
+				{:else if helpModal.error}
+					<p class="error-text">{helpModal.error}</p>
+				{:else if helpModal.ambassador}
+					<p class="help-intro">How would you like to contact your ambassador?</p>
+					<div class="contact-options">
+						{#if helpModal.ambassador.email}
+							<a href="mailto:{helpModal.ambassador.email}" class="contact-button email-button">
+								Email
+							</a>
+						{/if}
+						{#if helpModal.ambassador.slackId}
+							<a href="https://hackclub.enterprise.slack.com/team/{helpModal.ambassador.slackId}" target="_blank" rel="noopener noreferrer" class="contact-button slack-button">
+								Slack
+							</a>
+						{/if}
+					</div>
+				{:else}
+					<p class="error-text">No ambassador assigned to this club.</p>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	@font-face {
@@ -283,5 +347,139 @@
 		color: #8492a6;
 		font-size: 18px;
 		margin: 0;
+	}
+
+	.contact-us-button {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 14px;
+		background: #f9fafc;
+		border: 2px solid #e0e6ed;
+		border-radius: 8px;
+		font-size: 14px;
+		font-weight: 500;
+		color: #1f2d3d;
+		cursor: pointer;
+		transition: all 0.2s;
+		font-family: 'Phantom Sans', system-ui, sans-serif;
+	}
+
+	.contact-us-button:hover {
+		border-color: #338eda;
+		color: #338eda;
+	}
+
+	.contact-us-button img {
+		flex-shrink: 0;
+	}
+
+	.contact-us-button span {
+		white-space: nowrap;
+	}
+
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
+
+	.modal {
+		background: white;
+		border-radius: 12px;
+		width: 90%;
+		max-width: 400px;
+		font-family: 'Phantom Sans', system-ui, sans-serif;
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px 24px;
+		border-bottom: 1px solid #e0e6ed;
+	}
+
+	.modal-header h2 {
+		margin: 0;
+		font-size: 20px;
+		color: #1f2d3d;
+	}
+
+	.modal-close {
+		background: none;
+		border: none;
+		font-size: 28px;
+		color: #8492a6;
+		cursor: pointer;
+		padding: 0;
+		line-height: 1;
+	}
+
+	.modal-close:hover {
+		color: #1f2d3d;
+	}
+
+	.modal-body {
+		padding: 24px;
+	}
+
+	.loading-text {
+		color: #8492a6;
+		text-align: center;
+		margin: 0;
+	}
+
+	.error-text {
+		color: #ec3750;
+		text-align: center;
+		margin: 0;
+	}
+
+	.help-intro {
+		color: #1f2d3d;
+		text-align: center;
+		margin: 0 0 20px 0;
+	}
+
+	.contact-options {
+		display: flex;
+		gap: 12px;
+		justify-content: center;
+	}
+
+	.contact-button {
+		padding: 12px 24px;
+		border-radius: 6px;
+		font-weight: 600;
+		font-size: 14px;
+		text-decoration: none;
+		flex: 1;
+		text-align: center;
+	}
+
+	.email-button {
+		background-color: #ec3750;
+		color: white;
+	}
+
+	.email-button:hover {
+		background-color: #d62c47;
+	}
+
+	.slack-button {
+		background-color: #33d6a6;
+		color: white;
+	}
+
+	.slack-button:hover {
+		background-color: #2bc095;
 	}
 </style>
