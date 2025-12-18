@@ -62,6 +62,28 @@ export async function checkLeaderEmail(email) {
 	}
 }
 
+export async function checkLeaderClubStatus(email) {
+	console.log('[ClubAPI] checkLeaderClubStatus called with:', email);
+	try {
+		const data = await fetchClubApi('/leader', { email });
+		console.log('[ClubAPI] checkLeaderClubStatus full data:', JSON.stringify(data, null, 2));
+		if (!data || !data.club_name) {
+			return { isLeader: false, isDormant: false, apiError: false };
+		}
+		const clubStatus = data.club_status;
+		const isDormant = clubStatus === 'Dormant';
+		console.log('[ClubAPI] checkLeaderClubStatus result:', { isLeader: true, isDormant, clubStatus });
+		return { isLeader: true, isDormant, clubStatus, apiError: false };
+	} catch (error) {
+		console.error('[ClubAPI] checkLeaderClubStatus error:', error);
+		const errorMessage = error.message || '';
+		if (errorMessage.includes('500')) {
+			return { isLeader: false, isDormant: true, apiError: true };
+		}
+		return { isLeader: false, isDormant: false, apiError: true };
+	}
+}
+
 export async function getClubByName(clubName) {
 	try {
 		const data = await fetchClubApi('/club', { name: clubName });
@@ -274,6 +296,16 @@ export async function getClubAmbassador(clubName) {
 		return data;
 	} catch (error) {
 		console.error(`Error fetching ambassador for club ${clubName}:`, error);
+		return null;
+	}
+}
+
+export async function getMemberByCode(code) {
+	try {
+		const data = await fetchClubApi('/member/code', { code });
+		return data;
+	} catch (error) {
+		console.error(`Error fetching member by code ${code}:`, error);
 		return null;
 	}
 }

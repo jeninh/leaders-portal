@@ -4,6 +4,7 @@ import { getKnex } from '$lib/server/db/knex.js';
 import { verifyOTP } from '$lib/server/auth/otp.js';
 import { createSession } from '$lib/server/auth/sessions.js';
 import { getClubsForLeader } from '$lib/server/airtable.js';
+import { checkLeaderClubStatus } from '$lib/server/clubapi.js';
 import {
 	checkIpRateLimit,
 	checkEmailRateLimit,
@@ -49,6 +50,14 @@ export async function POST({ request, cookies, getClientAddress }) {
 		await recordIpAttempt(ip);
 		await recordEmailAttempt(email);
 		return json({ error: 'Invalid or expired OTP code' }, { status: 401 });
+	}
+
+	const { isLeader, isDormant } = await checkLeaderClubStatus(email);
+	if (!isLeader) {
+		return json({ error: 'You are not registered as a club leader' }, { status: 403 });
+	}
+	if (isDormant) {
+		return json({ error: 'Your club is marked as Dormant. Please contact Hack Club HQ to reactivate your club.' }, { status: 403 });
 	}
 
 	await resetRateLimit(`ip:${ip}`);

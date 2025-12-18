@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { env } from '$env/dynamic/private';
 import { getKnex } from '$lib/server/db/knex.js';
 import { createSession } from '$lib/server/auth/sessions.js';
-import { checkLeaderEmail } from '$lib/server/clubapi.js';
+import { checkLeaderClubStatus } from '$lib/server/clubapi.js';
 
 function sanitizeReturnTo(path) {
 	if (!path) return '/';
@@ -149,9 +149,12 @@ export const GET = async ({ url, cookies, fetch, getClientAddress, request, loca
 	}
 
 	if (!user) {
-		const isLeader = await checkLeaderEmail(primaryEmail);
+		const { isLeader, isDormant } = await checkLeaderClubStatus(primaryEmail);
 		if (!isLeader) {
 			throw redirect(302, '/email-login?error=not_a_leader');
+		}
+		if (isDormant) {
+			throw redirect(302, '/email-login?error=club_dormant');
 		}
 
 		try {

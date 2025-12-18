@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { getKnex } from '$lib/server/db/knex.js';
 import { createOTP } from '$lib/server/auth/otp.js';
-import { checkLeaderEmail } from '$lib/server/airtable.js';
+import { checkLeaderClubStatus } from '$lib/server/clubapi.js';
 import { sendOTPEmail } from '$lib/server/email.js';
 import {
 	checkIpRateLimit,
@@ -40,10 +40,14 @@ export async function POST({ request, getClientAddress }) {
 	await recordIpAttempt(ip);
 	await recordEmailAttempt(email);
 
-	const isLeader = await checkLeaderEmail(email);
+	const { isLeader, isDormant } = await checkLeaderClubStatus(email);
+
+	if (isDormant) {
+		return json({ error: 'Your club is marked as Dormant. Please contact Hack Club HQ to reactivate your club.' }, { status: 403 });
+	}
 
 	if (!isLeader) {
-		return json({ error: 'Email not found in Leaders table' }, { status: 403 });
+		return json({ error: 'You are not registered as a club leader. If this is a mistake, please contact us' }, { status: 403 });
 	}
 
 	const knex = getKnex();

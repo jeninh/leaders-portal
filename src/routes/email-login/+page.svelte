@@ -1,10 +1,21 @@
 <script>
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+
+	const errorMessages = {
+		not_a_leader: 'You are not registered as a club leader. If this is a mistake, please contact us.',
+		club_dormant: 'Your club is marked as Dormant. Please contact HQ to reactivate your club.',
+		oauth_denied: 'OAuth login failed.',
+		token_exchange_failed: 'Login failed. Please try again.',
+		user_fetch_failed: 'Could not retrieve your account. Please try again.',
+		no_email: 'No email found on your account.'
+	};
 
 	let email = $state('');
 	let otpCode = $state('');
 	let step = $state('email');
 	let loading = $state(false);
+	let urlError = $derived($page.url.searchParams.get('error'));
 	let error = $state('');
 
 	async function requestOTP(e) {
@@ -78,6 +89,10 @@
 <div class="container">
 	<div class="login-card">
 		<h1 class="title">Leader Portal Login</h1>
+
+		{#if urlError}
+			<div class="error">{errorMessages[urlError] || 'An error occurred. Please try again.'}</div>
+		{/if}
 
 		<a href="/auth/login" class="hackclub-button">
 			Sign in with Hack Club
