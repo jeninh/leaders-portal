@@ -72,6 +72,9 @@
 									/>
 									<span>Contact Us</span>
 								</button>
+								<a href="/invite-coleader" class="contact-us-button coleader-btn" title="Add a co-leader">
+									<span>+ Add Co-Leader</span>
+								</a>
 								<RefreshButton clubName={club.name} onRefresh={(refreshedClub) => handleRefresh(club.name, refreshedClub)} />
 								{#if club.level}
 									<span class="club-level">{club.level}</span>
@@ -241,32 +244,36 @@
 	}
 
 	.club-level {
-		padding: 4px 12px;
-		border-radius: 6px;
-		font-size: 12px;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		display: inline-flex;
+		align-items: center;
+		padding: 8px 14px;
 		background-color: #dcfce7;
+		border: 2px solid #dcfce7;
+		border-radius: 8px;
+		font-size: 14px;
+		font-weight: 700;
 		color: #166534;
 	}
 
 	.club-role {
-		padding: 4px 12px;
-		border-radius: 6px;
-		font-size: 12px;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		display: inline-flex;
+		align-items: center;
+		padding: 8px 14px;
+		border: 2px solid transparent;
+		border-radius: 8px;
+		font-size: 14px;
+		font-weight: 700;
 	}
 
 	.club-role.leader {
 		background-color: #fef3c7;
+		border-color: #fef3c7;
 		color: #92400e;
 	}
 
 	.club-role.member {
 		background-color: #dbeafe;
+		border-color: #dbeafe;
 		color: #1e40af;
 	}
 
@@ -333,6 +340,18 @@
 
 	.invite-link:hover {
 		text-decoration: underline;
+	}
+
+	.coleader-btn {
+		border-color: #a633d6;
+		color: #a633d6;
+		text-decoration: none;
+		min-height: 40px;
+	}
+
+	.coleader-btn:hover {
+		border-color: #a633d6;
+		color: #a633d6;
 	}
 
 	.empty-state {

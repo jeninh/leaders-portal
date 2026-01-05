@@ -109,6 +109,9 @@
 				<button type="button" class="add-btn" onclick={openAddModal}>
 					+ Add Member
 				</button>
+				<a href="/invite-coleader" class="coleader-btn">
+					+ Add Co-Leader
+				</a>
 				<button type="button" class="announce-btn" onclick={openAnnouncementModal}>
 					Send Announcement
 				</button>
@@ -364,6 +367,24 @@
 	.add-btn:hover {
 		background-color: #2bc495;
 		border-color: #2bc495;
+	}
+
+	.coleader-btn {
+		padding: 10px 20px;
+		background-color: #a633d6;
+		color: white;
+		border: 2px solid #a633d6;
+		border-radius: 6px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		font-family: 'Phantom Sans', sans-serif;
+		text-decoration: none;
+	}
+
+	.coleader-btn:hover {
+		background-color: #8e2bb8;
+		border-color: #8e2bb8;
 	}
 
 	.announce-btn {
