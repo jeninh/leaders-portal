@@ -75,21 +75,29 @@
 
 <div class="container">
 	<header>
-		<h1 class="title">Club Leaders Portal</h1>
-		<div class="header-buttons">
-			{#if data.user}
-				<a href="/my-club" class="nav-button">My Club</a>
-				<a href="/settings" class="nav-button secondary">Settings</a>
-				{#if data.user.isAdmin}
-					<a href="/admin" class="nav-button">Admin</a>
+		<iframe 
+			src="https://hackclub.com/map/" 
+			class="header-map"
+			title="Hack Club Map"
+			loading="lazy"
+		></iframe>
+		<div class="header-content">
+			<h1 class="title">Club Leaders Portal</h1>
+			<div class="header-buttons">
+				{#if data.user}
+					<a href="/my-club" class="nav-button">My Club</a>
+					<a href="/settings" class="nav-button secondary">Settings</a>
+					{#if data.user.isAdmin}
+						<a href="/admin" class="nav-button">Admin</a>
+					{/if}
+					<form method="POST" action="/logout" style="display: inline;">
+						<button type="submit" class="nav-button">Logout</button>
+					</form>
+				{:else}
+					<a href="/auth/login" class="nav-button">Sign in with Hack Club</a>
+					<a href="/email-login" class="nav-button secondary">Sign in with Email</a>
 				{/if}
-				<form method="POST" action="/logout" style="display: inline;">
-					<button type="submit" class="nav-button">Logout</button>
-				</form>
-			{:else}
-				<a href="/auth/login" class="nav-button">Sign in with Hack Club</a>
-				<a href="/email-login" class="nav-button secondary">Sign in with Email</a>
-			{/if}
+			</div>
 		</div>
 	</header>
 
@@ -155,6 +163,9 @@
 		<a href="https://guide.leaders.hackclub.com/" target="_blank" rel="noopener noreferrer" class="footer-button">
 			Club Leaders Guide
 		</a>
+		<a href="https://hackclub.com/map" target="_blank" rel="noopener noreferrer" class="footer-button">
+			Club Map
+		</a>
 	</footer>
 </div>
 
@@ -214,10 +225,43 @@
 	}
 
 	header {
+		position: relative;
 		display: flex;
-		justify-content: space-between;
+		justify-content: center;
 		align-items: center;
 		margin-bottom: 32px;
+		min-height: 500px;
+		border-radius: 16px;
+		overflow: hidden;
+	}
+
+	.header-map {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		border: none;
+		z-index: 0;
+	}
+
+	.header-content {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 20px;
+		padding: 40px 20px;
+		background: rgba(255, 255, 255, 0.9);
+		border-radius: 16px;
+		pointer-events: none;
+	}
+
+	.header-content .title,
+	.header-content .header-buttons,
+	.header-content .nav-button {
+		pointer-events: auto;
 	}
 
 	.title {
@@ -226,6 +270,8 @@
 		color: #ec3750;
 		letter-spacing: -0.02em;
 		margin: 0;
+		padding: 12px 24px;
+		border-radius: 12px;
 	}
 
 	.header-buttons {
