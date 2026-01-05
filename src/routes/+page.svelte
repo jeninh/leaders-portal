@@ -6,6 +6,11 @@
 	let { data } = $props();
 	let events = $state([]);
 	let selectedEvent = $state(null);
+	let hasWebdevEvents = $derived(events.some(e => e.category === 'Webdev'));
+	let hasCadEvents = $derived(events.some(e => e.category === 'CAD'));
+	let hasGamedevEvents = $derived(events.some(e => e.category === 'GameDev'));
+	let hasHardwareEvents = $derived(events.some(e => e.category === 'Hardware'));
+	let hasOtherEvents = $derived(events.some(e => e.category === 'Other'));
 	let hasCompletedEvents = $derived(events.some(e => e.completed));
 
 	onMount(async () => {
@@ -97,30 +102,40 @@
 	</a>
 
 	<main>
-		<div class="category-bubble webdev">
-			<h2 class="section-title">Web development series:</h2>
-			<EventGrid {events} category="Webdev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-		</div>
+		{#if hasWebdevEvents}
+			<div class="category-bubble webdev">
+				<h2 class="section-title">Web development series:</h2>
+				<EventGrid {events} category="Webdev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+			</div>
+		{/if}
 
-		<div class="category-bubble cad">
-			<h2 class="section-title">CAD series:</h2>
-			<EventGrid {events} category="CAD" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-		</div>
+		{#if hasCadEvents}
+			<div class="category-bubble cad">
+				<h2 class="section-title">CAD series:</h2>
+				<EventGrid {events} category="CAD" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+			</div>
+		{/if}
 
-		<div class="category-bubble gamedev">
-			<h2 class="section-title">Game Development Series:</h2>
-			<EventGrid {events} category="GameDev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-		</div>
+		{#if hasGamedevEvents}
+			<div class="category-bubble gamedev">
+				<h2 class="section-title">Game Development Series:</h2>
+				<EventGrid {events} category="GameDev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+			</div>
+		{/if}
 		
-		<div class="category-bubble hardware">
-			<h2 class="section-title">Hardware Series:</h2>
-			<EventGrid {events} category="Hardware" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-		</div>
+		{#if hasHardwareEvents}
+			<div class="category-bubble hardware">
+				<h2 class="section-title">Hardware Series:</h2>
+				<EventGrid {events} category="Hardware" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+			</div>
+		{/if}
 
-		<div class="category-bubble other">
-			<h2 class="section-title">Other Clubs YSWS:</h2>
-			<EventGrid {events} category="Other" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-		</div>
+		{#if hasOtherEvents}
+			<div class="category-bubble other">
+				<h2 class="section-title">Other Clubs YSWS:</h2>
+				<EventGrid {events} category="Other" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+			</div>
+		{/if}
 
 		{#if hasCompletedEvents}
 			<div class="category-bubble completed">

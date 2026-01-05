@@ -11,7 +11,6 @@
 				<img src={event.icon} alt="{event.title} icon" class="modal-icon-img" />
 			</div>
 			<h2 style="color: {event.textColor};">{event.title}</h2>
-			<span class="type-badge">{event.type}</span>
 		</div>
 		<div class="modal-body">
 			<div class="detail-row description" style="color: {event.textColor};">
@@ -158,18 +157,8 @@
 	}
 
 	.detail-row.description {
-		font-weight: 700;
-	}
-
-	.type-badge {
-		display: inline-block;
-		background: #ec3750;
-		color: #ffffff;
-		padding: 3px 8px;
-		border-radius: 999px;
-		font-size: 11px;
-		font-weight: bold;
-		width: fit-content;
+		font-weight: 500;
+		margin-bottom: 10px;
 	}
 
 	.button-row {
