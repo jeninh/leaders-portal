@@ -144,4 +144,72 @@
 		background-color: #2ecc9d;
 		border-color: #2ecc9d;
 	}
+
+	@media (max-width: 768px) {
+		.event-card {
+			padding: 14px;
+		}
+
+		.event-compact h3 {
+			font-size: 14px;
+		}
+
+		.event-icon {
+			width: 32px;
+			height: 32px;
+		}
+
+		.event-icon-hardware {
+			max-width: 48px;
+			max-height: 48px;
+		}
+
+		.type-badge {
+			font-size: 10px;
+			padding: 2px 6px;
+		}
+
+		.et {
+			font-size: 12px;
+		}
+
+		.complete-button {
+			width: 24px;
+			height: 24px;
+			font-size: 14px;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.event-card {
+			aspect-ratio: auto;
+			padding: 16px;
+		}
+
+		.event-compact {
+			flex-direction: row;
+			justify-content: flex-start;
+			text-align: left;
+			gap: 12px;
+		}
+
+		.event-compact h3 {
+			font-size: 15px;
+			flex: 1;
+		}
+
+		.event-icon,
+		.event-icon-hardware {
+			width: 40px;
+			height: 40px;
+			max-width: 40px;
+			max-height: 40px;
+			margin-bottom: 0;
+		}
+
+		.type-badge,
+		.et {
+			display: none;
+		}
+	}
 </style>
