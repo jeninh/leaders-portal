@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import EventGrid from '$lib/EventGrid.svelte';
 	import EventModal from '$lib/EventModal.svelte';
+	import EventBanner from '$lib/EventBanner.svelte';
 
 	let { data } = $props();
 	let events = $state([]);
@@ -12,6 +13,7 @@
 	let hasHardwareEvents = $derived(events.some(e => e.category === 'Hardware'));
 	let hasOtherEvents = $derived(events.some(e => e.category === 'Other'));
 	let hasCompletedEvents = $derived(events.some(e => e.completed));
+	let bannerEvent = $derived(events.find(e => e.category === 'Banner'));
 
 	onMount(async () => {
 		await fetchEvents();
@@ -100,6 +102,10 @@
 			</div>
 		</div>
 	</header>
+
+	{#if bannerEvent}
+		<EventBanner event={bannerEvent} />
+	{/if}
 
 	<a href="https://guide.leaders.hackclub.com/" target="_blank" rel="noopener noreferrer" class="help-button" aria-label="Club Leaders Guide">
 		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
