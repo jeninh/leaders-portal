@@ -8,7 +8,7 @@
 	let clubs = $state(data.clubs);
 	let helpModal = $state({ open: false, clubName: null, loading: false, ambassador: null, error: null });
 	let mapOptOutState = $state({});
-	let optInModal = $state({ open: false, clubName: null, latitude: '', longitude: '', loading: false, error: null });
+	let mapSettingsModal = $state({ open: false, clubName: null, latitude: '', longitude: '', fuzz: '0', optedOut: false, loading: false, error: null });
 
 	$effect(() => {
 		clubs.forEach(club => {
@@ -27,7 +27,8 @@
 					optedOut: data.optedOut, 
 					hasLocation: data.hasLocation,
 					venueLat: data.venueLat,
-					venueLng: data.venueLng
+					venueLng: data.venueLng,
+					venueFuzz: data.venueFuzz
 				};
 			}
 		} catch (err) {
@@ -59,87 +60,82 @@
 		helpModal = { open: false, clubName: null, loading: false, ambassador: null, error: null };
 	}
 
-	function handleMapButtonClick(clubName) {
+	function openMapSettings(clubName) {
 		const state = mapOptOutState[clubName];
-		const needsLocation = !state?.hasLocation;
-		const currentlyOptedOut = state?.optedOut ?? !needsLocation;
-		
-		if (needsLocation || currentlyOptedOut) {
-			optInModal = { open: true, clubName, latitude: '', longitude: '', loading: false, error: null };
-		} else {
-			handleMapOptOut(clubName);
-		}
+		mapSettingsModal = { 
+			open: true, 
+			clubName, 
+			latitude: state?.venueLat || '', 
+			longitude: state?.venueLng || '', 
+			fuzz: state?.venueFuzz || '0',
+			optedOut: state?.optedOut ?? false,
+			loading: false, 
+			error: null 
+		};
 	}
 
-	function closeOptInModal() {
-		optInModal = { open: false, clubName: null, latitude: '', longitude: '', loading: false, error: null };
+	function closeMapSettingsModal() {
+		mapSettingsModal = { open: false, clubName: null, latitude: '', longitude: '', fuzz: '0', optedOut: false, loading: false, error: null };
 	}
 
-	async function submitOptIn() {
-		const lat = parseFloat(optInModal.latitude);
-		const lng = parseFloat(optInModal.longitude);
+	async function submitMapSettings() {
+		const lat = parseFloat(mapSettingsModal.latitude);
+		const lng = parseFloat(mapSettingsModal.longitude);
+		const fuzz = parseFloat(mapSettingsModal.fuzz);
 		
 		if (isNaN(lat) || isNaN(lng)) {
-			optInModal = { ...optInModal, error: 'Please enter valid latitude and longitude values' };
+			mapSettingsModal = { ...mapSettingsModal, error: 'Please enter valid latitude and longitude values' };
 			return;
 		}
 		
 		if (lat < -90 || lat > 90) {
-			optInModal = { ...optInModal, error: 'Latitude must be between -90 and 90' };
+			mapSettingsModal = { ...mapSettingsModal, error: 'Latitude must be between -90 and 90' };
 			return;
 		}
 		
 		if (lng < -180 || lng > 180) {
-			optInModal = { ...optInModal, error: 'Longitude must be between -180 and 180' };
+			mapSettingsModal = { ...mapSettingsModal, error: 'Longitude must be between -180 and 180' };
+			return;
+		}
+
+		if (isNaN(fuzz) || fuzz < -0.5 || fuzz > 0.5) {
+			mapSettingsModal = { ...mapSettingsModal, error: 'Offset must be between -0.5 and 0.5' };
 			return;
 		}
 		
-		optInModal = { ...optInModal, loading: true, error: null };
+		mapSettingsModal = { ...mapSettingsModal, loading: true, error: null };
 		
 		try {
 			const response = await fetch('/api/club/map-opt-out', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ 
-					clubName: optInModal.clubName, 
-					action: 'optIn', 
+					clubName: mapSettingsModal.clubName, 
+					action: 'updateSettings', 
 					latitude: lat, 
-					longitude: lng 
+					longitude: lng,
+					fuzz: fuzz,
+					optedOut: mapSettingsModal.optedOut
 				})
 			});
 			
 			if (!response.ok) {
 				const data = await response.json();
-				optInModal = { ...optInModal, loading: false, error: data.error || 'Failed to opt in' };
+				mapSettingsModal = { ...mapSettingsModal, loading: false, error: data.error || 'Failed to save settings' };
 				return;
 			}
 			
 			const data = await response.json();
-			mapOptOutState[optInModal.clubName] = { optedOut: data.optedOut, hasLocation: data.hasLocation };
-			closeOptInModal();
+			mapOptOutState[mapSettingsModal.clubName] = { 
+				optedOut: data.optedOut, 
+				hasLocation: data.hasLocation,
+				venueLat: data.venueLat,
+				venueLng: data.venueLng,
+				venueFuzz: data.venueFuzz
+			};
+			closeMapSettingsModal();
 		} catch (err) {
-			optInModal = { ...optInModal, loading: false, error: 'Failed to opt in' };
-		}
-	}
-
-	async function handleMapOptOut(clubName) {
-		const currentState = mapOptOutState[clubName];
-		mapOptOutState[clubName] = { ...currentState, loading: true };
-		try {
-			const response = await fetch('/api/club/map-opt-out', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ clubName })
-			});
-			if (!response.ok) {
-				const data = await response.json();
-				mapOptOutState[clubName] = { ...currentState, error: data.error || 'Failed to update' };
-				return;
-			}
-			const data = await response.json();
-			mapOptOutState[clubName] = { optedOut: data.optedOut, hasLocation: currentState?.hasLocation };
-		} catch (err) {
-			mapOptOutState[clubName] = { ...currentState, error: 'Failed to update' };
+			mapSettingsModal = { ...mapSettingsModal, loading: false, error: 'Failed to save settings' };
 		}
 	}
 </script>
@@ -226,17 +222,10 @@
 										</a>
 									{/if}
 									<button 
-										class="map-opt-out-button" 
-										onclick={() => handleMapButtonClick(club.name)}
-										disabled={mapOptOutState[club.name]?.loading}
+										class="map-settings-button" 
+										onclick={() => openMapSettings(club.name)}
 									>
-										{#if mapOptOutState[club.name]?.loading}
-											Updating...
-										{:else if !mapOptOutState[club.name]?.hasLocation || mapOptOutState[club.name]?.optedOut}
-											Opt in to Club Map
-										{:else}
-											Opt out of Club Map
-										{/if}
+										Map Settings
 									</button>
 								</div>
 							</div>
@@ -276,14 +265,26 @@
 	{/if}
 </Modal>
 
-<Modal open={optInModal.open} title="Opt In to Club Map" onClose={closeOptInModal}>
-	<p class="opt-in-intro">Enter your club's location to appear on the Hack Club Clubs Map. Click <a href="https://www.latlong.net/convert-address-to-lat-long.html">here</a> to convert an address into lat/long values.</p>
+<Modal open={mapSettingsModal.open} title="Map Settings" onClose={closeMapSettingsModal}>
+	<p class="map-settings-intro">Configure your club's appearance on the <a href="https://hackclub.com/map" target="_blank" rel="noopener noreferrer">Hack Club Map</a>.</p>
 	
-	{#if optInModal.error}
-		<p class="error-text">{optInModal.error}</p>
+	{#if mapSettingsModal.error}
+		<p class="error-text">{mapSettingsModal.error}</p>
 	{/if}
 	
 	<div class="opt-in-form">
+		<div class="opt-out-toggle" class:opted-out={mapSettingsModal.optedOut}>
+			<label class="toggle-label">
+				<input 
+					type="checkbox" 
+					bind:checked={mapSettingsModal.optedOut}
+					disabled={mapSettingsModal.loading}
+				/>
+				<span class="toggle-switch"></span>
+				<span class="toggle-text">{mapSettingsModal.optedOut ? 'Hidden from map' : 'Visible on map'}</span>
+			</label>
+		</div>
+
 		<div class="form-field">
 			<label for="latitude">Latitude</label>
 			<input 
@@ -291,9 +292,10 @@
 				id="latitude" 
 				step="any"
 				placeholder="e.g. 37.7749"
-				bind:value={optInModal.latitude}
-				disabled={optInModal.loading}
+				bind:value={mapSettingsModal.latitude}
+				disabled={mapSettingsModal.loading}
 			/>
+			<span class="field-hint">Click <a href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="noopener noreferrer">here</a> to convert an address to lat/long</span>
 		</div>
 		<div class="form-field">
 			<label for="longitude">Longitude</label>
@@ -302,19 +304,32 @@
 				id="longitude" 
 				step="any"
 				placeholder="e.g. -122.4194"
-				bind:value={optInModal.longitude}
-				disabled={optInModal.loading}
+				bind:value={mapSettingsModal.longitude}
+				disabled={mapSettingsModal.loading}
 			/>
+		</div>
+		<div class="form-field">
+			<label for="fuzz">Map Offset</label>
+			<input 
+				type="range" 
+				id="fuzz" 
+				min="-0.5"
+				max="0.5"
+				step="0.01"
+				bind:value={mapSettingsModal.fuzz}
+				disabled={mapSettingsModal.loading}
+			/>
+			<span class="field-hint">Offset: {parseFloat(mapSettingsModal.fuzz).toFixed(2)} (adjusts map pin position for privacy, set to zero for no offset.)</span>
 		</div>
 		<button 
 			class="submit-opt-in" 
-			onclick={submitOptIn}
-			disabled={optInModal.loading}
+			onclick={submitMapSettings}
+			disabled={mapSettingsModal.loading}
 		>
-			{#if optInModal.loading}
+			{#if mapSettingsModal.loading}
 				Saving...
 			{:else}
-				Opt In
+				Save Settings
 			{/if}
 		</button>
 	</div>
@@ -651,33 +666,22 @@
 		border-color: #2a7bc5;
 	}
 
-	.map-opt-out-button {
+	.map-settings-button {
 		padding: 10px 16px;
 		background: #f9fafc;
 		border: 2px solid #e0e6ed;
 		border-radius: 6px;
 		font-size: 14px;
 		font-weight: 500;
-		color: #8492a6;
+		color: #1f2d3d;
 		cursor: pointer;
 		font-family: 'Phantom Sans', system-ui, sans-serif;
 		transition: all 0.2s;
 	}
 
-	.map-opt-out-button:hover:not(:disabled) {
-		border-color: #ec3750;
-		color: #ec3750;
-	}
-
-	.map-opt-out-button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.opt-out-success {
-		font-size: 14px;
-		font-weight: 500;
-		color: #33d6a6;
+	.map-settings-button:hover {
+		border-color: #338eda;
+		color: #338eda;
 	}
 
 	.opt-out-error {
@@ -692,8 +696,20 @@
 		text-align: center;
 	}
 
-	.opt-in-intro a {
+	.map-settings-intro {
+		color: #8492a6;
+		margin: 0 0 20px 0;
+		text-align: center;
+		font-size: 14px;
+	}
+
+	.map-settings-intro a {
 		color: #338eda;
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	.map-settings-intro a:hover {
 		text-decoration: underline;
 	}
 
@@ -701,6 +717,66 @@
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
+	}
+
+	.opt-out-toggle {
+		padding: 14px 16px;
+		background: #e8f5e9;
+		border: 2px solid #33d6a6;
+		border-radius: 8px;
+		transition: all 0.2s;
+	}
+
+	.opt-out-toggle.opted-out {
+		background: #fef3f4;
+		border-color: #ec3750;
+	}
+
+	.toggle-label {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		cursor: pointer;
+	}
+
+	.toggle-label input {
+		display: none;
+	}
+
+	.toggle-switch {
+		width: 44px;
+		height: 24px;
+		background: #33d6a6;
+		border-radius: 12px;
+		position: relative;
+		transition: background 0.2s;
+		flex-shrink: 0;
+	}
+
+	.toggle-switch::after {
+		content: '';
+		position: absolute;
+		width: 18px;
+		height: 18px;
+		background: white;
+		border-radius: 50%;
+		top: 3px;
+		left: 3px;
+		transition: transform 0.2s;
+	}
+
+	.opted-out .toggle-switch {
+		background: #ec3750;
+	}
+
+	.opted-out .toggle-switch::after {
+		transform: translateX(20px);
+	}
+
+	.toggle-text {
+		font-size: 14px;
+		font-weight: 600;
+		color: #1f2d3d;
 	}
 
 	.form-field {
@@ -731,6 +807,25 @@
 	.form-field input:disabled {
 		background-color: #f9fafc;
 		color: #8492a6;
+	}
+
+	.form-field input[type="range"] {
+		padding: 0;
+		border: none;
+		cursor: pointer;
+	}
+
+	.form-field input[type="range"]:focus {
+		border: none;
+	}
+
+	.field-hint {
+		font-size: 12px;
+		color: #8492a6;
+	}
+
+	.field-hint a {
+		color: #338eda;
 	}
 
 	.submit-opt-in {

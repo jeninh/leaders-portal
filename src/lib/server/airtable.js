@@ -27,13 +27,15 @@ export async function getMapOptOut(clubName) {
 		}
 
 		const record = records[0];
-		const venueLat = record.get('venue_lat_fuzz');
-		const venueLng = record.get('venue_lng_fuzz');
+		const venueLat = record.get('venue_lat');
+		const venueLng = record.get('venue_lng');
+		const venueFuzz = record.get('venue_fuzz');
 		return {
 			optedOut: !!record.get('map-opt-out'),
 			hasLocation: venueLat !== undefined && venueLat !== null,
-			venueLat: venueLat ? parseFloat(venueLat) : null,
-			venueLng: venueLng ? parseFloat(venueLng) : null
+			venueLat: venueLat ? String(venueLat) : null,
+			venueLng: venueLng ? String(venueLng) : null,
+			venueFuzz: venueFuzz ?? 0
 		};
 	} catch (error) {
 		console.error('Error getting map-opt-out from Airtable:', error);
@@ -93,5 +95,47 @@ export async function optInToMap(clubName, latitude, longitude) {
 	} catch (error) {
 		console.error('Error opting in to map in Airtable:', error);
 		throw new Error("Failed to opt in to map");
+	}
+}
+
+export async function updateMapSettings(clubName, { optedOut, latitude, longitude, fuzz }) {
+	const base = getAirtableBase();
+	
+	try {
+		const records = await base('Clubs').select({
+			filterByFormula: `{club_name} = "${clubName}"`,
+			maxRecords: 1
+		}).firstPage();
+
+		if (records.length === 0) {
+			throw new Error("Club not found in Airtable");
+		}
+
+		const updateData = {
+			'map-opt-out': optedOut
+		};
+
+		if (latitude !== undefined && longitude !== undefined) {
+			updateData['venue_lat'] = String(latitude);
+			updateData['venue_lng'] = String(longitude);
+		}
+
+		if (fuzz !== undefined) {
+			updateData['venue_fuzz'] = fuzz;
+		}
+
+		await base('Clubs').update(records[0].id, updateData);
+		
+		console.log(`Updated map settings for club ${clubName}:`, updateData);
+		return { 
+			optedOut, 
+			hasLocation: latitude !== undefined && longitude !== undefined,
+			venueLat: latitude ? String(latitude) : null,
+			venueLng: longitude ? String(longitude) : null,
+			venueFuzz: fuzz ?? 0
+		};
+	} catch (error) {
+		console.error('Error updating map settings in Airtable:', error);
+		throw new Error("Failed to update map settings");
 	}
 }
