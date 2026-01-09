@@ -106,9 +106,6 @@
 				<button type="button" class="add-btn" onclick={openAddModal}>
 					+ Add Member
 				</button>
-				<a href="/invite-coleader" class="coleader-btn">
-					+ Add Co-Leader
-				</a>
 				<button type="button" class="announce-btn" onclick={openAnnouncementModal}>
 					Send Announcement
 				</button>

@@ -1,5 +1,4 @@
 <script>
-	import LevelCard from '$lib/LevelCard.svelte';
 	import RefreshButton from '$lib/RefreshButton.svelte';
 	import Modal from '$lib/Modal.svelte';
 	import { mergeClubData } from '$lib/club-utils.js';
@@ -7,34 +6,6 @@
 	let { data } = $props();
 	let clubs = $state(data.clubs);
 	let helpModal = $state({ open: false, clubName: null, loading: false, ambassador: null, error: null });
-	let mapOptOutState = $state({});
-	let mapSettingsModal = $state({ open: false, clubName: null, latitude: '', longitude: '', fuzz: '0', optedOut: false, loading: false, error: null });
-
-	$effect(() => {
-		clubs.forEach(club => {
-			if (club.role === 'leader' && !mapOptOutState[club.name]) {
-				fetchMapOptOutStatus(club.name);
-			}
-		});
-	});
-
-	async function fetchMapOptOutStatus(clubName) {
-		try {
-			const response = await fetch(`/api/club/map-opt-out?clubName=${encodeURIComponent(clubName)}`);
-			if (response.ok) {
-				const data = await response.json();
-				mapOptOutState[clubName] = { 
-					optedOut: data.optedOut, 
-					hasLocation: data.hasLocation,
-					venueLat: data.venueLat,
-					venueLng: data.venueLng,
-					venueFuzz: data.venueFuzz
-				};
-			}
-		} catch (err) {
-			// Silently fail - button will show default state
-		}
-	}
 
 	function handleRefresh(clubName, refreshedClub) {
 		clubs = clubs.map(c => c.name === clubName ? mergeClubData(c, refreshedClub) : c);
@@ -58,85 +29,6 @@
 
 	function closeHelpModal() {
 		helpModal = { open: false, clubName: null, loading: false, ambassador: null, error: null };
-	}
-
-	function openMapSettings(clubName) {
-		const state = mapOptOutState[clubName];
-		mapSettingsModal = { 
-			open: true, 
-			clubName, 
-			latitude: state?.venueLat || '', 
-			longitude: state?.venueLng || '', 
-			fuzz: state?.venueFuzz || '0',
-			optedOut: state?.optedOut ?? false,
-			loading: false, 
-			error: null 
-		};
-	}
-
-	function closeMapSettingsModal() {
-		mapSettingsModal = { open: false, clubName: null, latitude: '', longitude: '', fuzz: '0', optedOut: false, loading: false, error: null };
-	}
-
-	async function submitMapSettings() {
-		const lat = parseFloat(mapSettingsModal.latitude);
-		const lng = parseFloat(mapSettingsModal.longitude);
-		const fuzz = parseFloat(mapSettingsModal.fuzz);
-		
-		if (isNaN(lat) || isNaN(lng)) {
-			mapSettingsModal = { ...mapSettingsModal, error: 'Please enter valid latitude and longitude values' };
-			return;
-		}
-		
-		if (lat < -90 || lat > 90) {
-			mapSettingsModal = { ...mapSettingsModal, error: 'Latitude must be between -90 and 90' };
-			return;
-		}
-		
-		if (lng < -180 || lng > 180) {
-			mapSettingsModal = { ...mapSettingsModal, error: 'Longitude must be between -180 and 180' };
-			return;
-		}
-
-		if (isNaN(fuzz) || fuzz < -0.5 || fuzz > 0.5) {
-			mapSettingsModal = { ...mapSettingsModal, error: 'Offset must be between -0.5 and 0.5' };
-			return;
-		}
-		
-		mapSettingsModal = { ...mapSettingsModal, loading: true, error: null };
-		
-		try {
-			const response = await fetch('/api/club/map-opt-out', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ 
-					clubName: mapSettingsModal.clubName, 
-					action: 'updateSettings', 
-					latitude: lat, 
-					longitude: lng,
-					fuzz: fuzz,
-					optedOut: mapSettingsModal.optedOut
-				})
-			});
-			
-			if (!response.ok) {
-				const data = await response.json();
-				mapSettingsModal = { ...mapSettingsModal, loading: false, error: data.error || 'Failed to save settings' };
-				return;
-			}
-			
-			const data = await response.json();
-			mapOptOutState[mapSettingsModal.clubName] = { 
-				optedOut: data.optedOut, 
-				hasLocation: data.hasLocation,
-				venueLat: data.venueLat,
-				venueLng: data.venueLng,
-				venueFuzz: data.venueFuzz
-			};
-			closeMapSettingsModal();
-		} catch (err) {
-			mapSettingsModal = { ...mapSettingsModal, loading: false, error: 'Failed to save settings' };
-		}
 	}
 </script>
 
@@ -172,9 +64,6 @@
 									/>
 									<span>Contact Us</span>
 								</button>
-								<a href="/invite-coleader" class="contact-us-button coleader-btn" title="Add a co-leader">
-									<span>+ Add Co-Leader</span>
-								</a>
 								<RefreshButton clubName={club.name} onRefresh={(refreshedClub) => handleRefresh(club.name, refreshedClub)} />
 								{#if club.level}
 									<span class="club-level">{club.level}</span>
@@ -182,8 +71,6 @@
 								<span class="club-role {club.role}">{club.role}</span>
 							</div>
 						</div>
-
-						<LevelCard currentLevel={club.level || 'Bronze'} clubShips={club.ships.length || 0} />
 
 						<div class="stats-row">
 							<a href="/my-club/{encodeURIComponent(club.name)}/members" class="stat-card">
@@ -194,6 +81,21 @@
 								<span class="stat-number">{club.ships?.length || 0}</span>
 								<span class="stat-label">Ships</span>
 							</a>
+							<a href="/my-club/{encodeURIComponent(club.name)}/levels" class="stat-card">
+								<span class="stat-number">{(club.level || 'level 1').replace('level ', '')}</span>
+								<span class="stat-label">Club Level</span>
+							</a>
+							{#if club.role === 'leader'}
+								<a href="/my-club/{encodeURIComponent(club.name)}/manage" class="stat-card manage-card">
+									<img 
+										src="https://icons.hackclub.com/api/icons/black/settings" 
+										alt="Manage icon"
+										width="32"
+										height="32"
+									/>
+									<span class="stat-label">Manage Club</span>
+								</a>
+							{/if}
 						</div>
 
 						{#if club.joinCode}
@@ -205,31 +107,7 @@
 							</div>
 						{/if}
 
-						{#if club.role === 'leader'}
-							<div class="map-opt-out-section">
-								{#if mapOptOutState[club.name]?.error}
-									<span class="opt-out-error">{mapOptOutState[club.name].error}</span>
-								{/if}
-								<div class="map-buttons">
-									{#if mapOptOutState[club.name]?.hasLocation && !mapOptOutState[club.name]?.optedOut}
-										<a 
-											href="https://hackclub.com/map#lat={mapOptOutState[club.name].venueLat}&lng={mapOptOutState[club.name].venueLng}&z=10"
-											target="_blank"
-											rel="noopener noreferrer"
-											class="view-map-button"
-										>
-											View Club in Club Map
-										</a>
-									{/if}
-									<button 
-										class="map-settings-button" 
-										onclick={() => openMapSettings(club.name)}
-									>
-										Map Settings
-									</button>
-								</div>
-							</div>
-						{/if}
+
 					</div>
 				{/each}
 			</div>
@@ -265,75 +143,7 @@
 	{/if}
 </Modal>
 
-<Modal open={mapSettingsModal.open} title="Map Settings" onClose={closeMapSettingsModal}>
-	<p class="map-settings-intro">Configure your club's appearance on the <a href="https://hackclub.com/map" target="_blank" rel="noopener noreferrer">Hack Club Map</a>.</p>
-	
-	{#if mapSettingsModal.error}
-		<p class="error-text">{mapSettingsModal.error}</p>
-	{/if}
-	
-	<div class="opt-in-form">
-		<div class="opt-out-toggle" class:opted-out={mapSettingsModal.optedOut}>
-			<label class="toggle-label">
-				<input 
-					type="checkbox" 
-					bind:checked={mapSettingsModal.optedOut}
-					disabled={mapSettingsModal.loading}
-				/>
-				<span class="toggle-switch"></span>
-				<span class="toggle-text">{mapSettingsModal.optedOut ? 'Hidden from map' : 'Visible on map'}</span>
-			</label>
-		</div>
 
-		<div class="form-field">
-			<label for="latitude">Latitude</label>
-			<input 
-				type="number" 
-				id="latitude" 
-				step="any"
-				placeholder="e.g. 37.7749"
-				bind:value={mapSettingsModal.latitude}
-				disabled={mapSettingsModal.loading}
-			/>
-			<span class="field-hint">Click <a href="https://www.latlong.net/convert-address-to-lat-long.html" target="_blank" rel="noopener noreferrer">here</a> to convert an address to lat/long</span>
-		</div>
-		<div class="form-field">
-			<label for="longitude">Longitude</label>
-			<input 
-				type="number" 
-				id="longitude" 
-				step="any"
-				placeholder="e.g. -122.4194"
-				bind:value={mapSettingsModal.longitude}
-				disabled={mapSettingsModal.loading}
-			/>
-		</div>
-		<div class="form-field">
-			<label for="fuzz">Map Offset</label>
-			<input 
-				type="range" 
-				id="fuzz" 
-				min="-0.5"
-				max="0.5"
-				step="0.01"
-				bind:value={mapSettingsModal.fuzz}
-				disabled={mapSettingsModal.loading}
-			/>
-			<span class="field-hint">Offset: {parseFloat(mapSettingsModal.fuzz).toFixed(2)} (adjusts map pin position for privacy, set to zero for no offset.)</span>
-		</div>
-		<button 
-			class="submit-opt-in" 
-			onclick={submitMapSettings}
-			disabled={mapSettingsModal.loading}
-		>
-			{#if mapSettingsModal.loading}
-				Saving...
-			{:else}
-				Save Settings
-			{/if}
-		</button>
-	</div>
-</Modal>
 
 <style>
 	@font-face {
@@ -528,16 +338,14 @@
 		text-decoration: underline;
 	}
 
-	.coleader-btn {
-		border-color: #a633d6;
-		color: #a633d6;
-		text-decoration: none;
-		min-height: 40px;
+	.manage-card {
+		justify-content: center;
 	}
 
-	.coleader-btn:hover {
-		border-color: #a633d6;
-		color: #a633d6;
+	.manage-card img {
+		width: 32px;
+		height: 32px;
+		margin-bottom: 8px;
 	}
 
 	.empty-state {
@@ -633,220 +441,5 @@
 
 	.slack-button:hover {
 		background-color: #2bc095;
-	}
-
-	.map-opt-out-section {
-		margin-top: 16px;
-		padding-top: 16px;
-		border-top: 1px solid #e0e6ed;
-	}
-
-	.map-buttons {
-		display: flex;
-		gap: 8px;
-		align-items: center;
-	}
-
-	.view-map-button {
-		padding: 10px 16px;
-		background: #338eda;
-		border: 2px solid #338eda;
-		border-radius: 6px;
-		font-size: 14px;
-		font-weight: 500;
-		color: white;
-		cursor: pointer;
-		font-family: 'Phantom Sans', system-ui, sans-serif;
-		transition: all 0.2s;
-		text-decoration: none;
-	}
-
-	.view-map-button:hover {
-		background: #2a7bc5;
-		border-color: #2a7bc5;
-	}
-
-	.map-settings-button {
-		padding: 10px 16px;
-		background: #f9fafc;
-		border: 2px solid #e0e6ed;
-		border-radius: 6px;
-		font-size: 14px;
-		font-weight: 500;
-		color: #1f2d3d;
-		cursor: pointer;
-		font-family: 'Phantom Sans', system-ui, sans-serif;
-		transition: all 0.2s;
-	}
-
-	.map-settings-button:hover {
-		border-color: #338eda;
-		color: #338eda;
-	}
-
-	.opt-out-error {
-		font-size: 14px;
-		font-weight: 500;
-		color: #ec3750;
-	}
-
-	.opt-in-intro {
-		color: #1f2d3d;
-		margin: 0 0 16px 0;
-		text-align: center;
-	}
-
-	.map-settings-intro {
-		color: #8492a6;
-		margin: 0 0 20px 0;
-		text-align: center;
-		font-size: 14px;
-	}
-
-	.map-settings-intro a {
-		color: #338eda;
-		text-decoration: none;
-		font-weight: 500;
-	}
-
-	.map-settings-intro a:hover {
-		text-decoration: underline;
-	}
-
-	.opt-in-form {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
-
-	.opt-out-toggle {
-		padding: 14px 16px;
-		background: #e8f5e9;
-		border: 2px solid #33d6a6;
-		border-radius: 8px;
-		transition: all 0.2s;
-	}
-
-	.opt-out-toggle.opted-out {
-		background: #fef3f4;
-		border-color: #ec3750;
-	}
-
-	.toggle-label {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		cursor: pointer;
-	}
-
-	.toggle-label input {
-		display: none;
-	}
-
-	.toggle-switch {
-		width: 44px;
-		height: 24px;
-		background: #33d6a6;
-		border-radius: 12px;
-		position: relative;
-		transition: background 0.2s;
-		flex-shrink: 0;
-	}
-
-	.toggle-switch::after {
-		content: '';
-		position: absolute;
-		width: 18px;
-		height: 18px;
-		background: white;
-		border-radius: 50%;
-		top: 3px;
-		left: 3px;
-		transition: transform 0.2s;
-	}
-
-	.opted-out .toggle-switch {
-		background: #ec3750;
-	}
-
-	.opted-out .toggle-switch::after {
-		transform: translateX(20px);
-	}
-
-	.toggle-text {
-		font-size: 14px;
-		font-weight: 600;
-		color: #1f2d3d;
-	}
-
-	.form-field {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-
-	.form-field label {
-		font-size: 14px;
-		font-weight: 600;
-		color: #1f2d3d;
-	}
-
-	.form-field input {
-		padding: 10px 12px;
-		border: 2px solid #e0e6ed;
-		border-radius: 6px;
-		font-size: 14px;
-		font-family: 'Phantom Sans', system-ui, sans-serif;
-	}
-
-	.form-field input:focus {
-		outline: none;
-		border-color: #338eda;
-	}
-
-	.form-field input:disabled {
-		background-color: #f9fafc;
-		color: #8492a6;
-	}
-
-	.form-field input[type="range"] {
-		padding: 0;
-		border: none;
-		cursor: pointer;
-	}
-
-	.form-field input[type="range"]:focus {
-		border: none;
-	}
-
-	.field-hint {
-		font-size: 12px;
-		color: #8492a6;
-	}
-
-	.field-hint a {
-		color: #338eda;
-	}
-
-	.submit-opt-in {
-		padding: 12px 20px;
-		background-color: #33d6a6;
-		color: white;
-		border: none;
-		border-radius: 6px;
-		font-size: 14px;
-		font-weight: 600;
-		cursor: pointer;
-		font-family: 'Phantom Sans', system-ui, sans-serif;
-		margin-top: 8px;
-	}
-
-	.submit-opt-in:hover:not(:disabled) {
-		background-color: #2bc095;
-	}
-
-	.submit-opt-in:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
 	}
 </style>
