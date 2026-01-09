@@ -121,6 +121,11 @@ export const actions = {
 		const callClubIntrest = formData.getAll('call_club_intrest').map(v => v.toString());
 		updates['call_club_intrest'] = callClubIntrest;
 
+		const clubWebsite = formData.get('club_website')?.toString().trim();
+		if (clubWebsite !== undefined) {
+			updates['club_website'] = clubWebsite;
+		}
+
 		if (Object.keys(updates).length === 0) {
 			return { success: true, message: 'No changes to save' };
 		}

@@ -2,6 +2,7 @@ import { redirect, fail } from '@sveltejs/kit';
 import { getKnex } from '$lib/server/db/knex.js';
 import { getClubsForEmail, getEffectiveEmailForUser } from '$lib/server/sync-clubs.js';
 import { deleteMember, sendAnnouncement } from '$lib/server/clubapi.js';
+import { getClubSettings } from '$lib/server/airtable.js';
 
 export async function load({ locals }) {
 	console.log('[MyClub] load called, userPublic:', !!locals.userPublic, 'userId:', locals.userId);
@@ -17,10 +18,20 @@ export async function load({ locals }) {
 	const effectiveEmail = getEffectiveEmailForUser(user);
 	const clubs = await getClubsForEmail(effectiveEmail);
 
-	console.log('[MyClub] Returning', clubs?.length, 'clubs');
+	const clubsWithWebsite = await Promise.all(
+		clubs.map(async (club) => {
+			const settings = await getClubSettings(club.name);
+			return {
+				...club,
+				clubWebsite: settings?.clubWebsite || ''
+			};
+		})
+	);
+
+	console.log('[MyClub] Returning', clubsWithWebsite?.length, 'clubs');
 	return {
 		user: locals.userPublic,
-		clubs
+		clubs: clubsWithWebsite
 	};
 }
 

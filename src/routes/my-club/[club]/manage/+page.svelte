@@ -22,6 +22,11 @@
 	let callMeetingDays = $state(settings?.callMeetingDays || []);
 	let callMeetingLength = $state(settings?.callMeetingLength || '');
 	let callClubIntrest = $state(settings?.callClubIntrest || []);
+	let clubWebsite = $state(settings?.clubWebsite || '');
+	
+	function getClubSlug(name) {
+		return name.toLowerCase().replace(/\s+/g, '-');
+	}
 	
 	let latitude = $state(settings?.venueLat || '');
 	let longitude = $state(settings?.venueLng || '');
@@ -128,6 +133,26 @@
 						/>
 						<input type="hidden" name="club_status" value={clubStatus} />
 						<p class="field-hint">Club status cannot be changed once dormant.</p>
+					{/if}
+				</div>
+
+				<div class="form-group">
+					<label for="club_website">Club Website</label>
+					<input 
+						type="url" 
+						id="club_website" 
+						name="club_website" 
+						bind:value={clubWebsite}
+						placeholder="https://yourclub.com"
+					/>
+					<p class="field-hint">Optional. Your club's website or landing page URL.</p>
+					{#if clubWebsite}
+						<p class="redirect-link">
+							<span class="redirect-label">Club redirect:</span>
+							<a href="/redirect/{getClubSlug(club.name)}" target="_blank" rel="noopener noreferrer">
+								hack.club/club/{getClubSlug(club.name)}
+							</a>
+						</p>
 					{/if}
 				</div>
 
@@ -572,6 +597,34 @@
 
 	.field-hint a {
 		color: #338eda;
+	}
+
+	.redirect-link {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 8px;
+		padding: 10px 12px;
+		background: #e6f4ff;
+		border: 1px solid #338eda;
+		border-radius: 6px;
+	}
+
+	.redirect-label {
+		font-size: 13px;
+		font-weight: 600;
+		color: #1f2d3d;
+	}
+
+	.redirect-link a {
+		font-size: 13px;
+		font-weight: 600;
+		color: #338eda;
+		text-decoration: none;
+	}
+
+	.redirect-link a:hover {
+		text-decoration: underline;
 	}
 
 	.checkbox-group {

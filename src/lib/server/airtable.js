@@ -158,7 +158,8 @@ const ALLOWED_CLUB_FIELDS = [
 	'Est. # of Attendees',
 	'call_meeting_days',
 	'call_meeting_length',
-	'call_club_intrest'
+	'call_club_intrest',
+	'club_website'
 ];
 
 const VENUE_TYPE_OPTIONS = ['School/College', 'Makerspace', 'Online', 'Other'];
@@ -166,6 +167,30 @@ const CLUB_STATUS_OPTIONS = ['Active', 'Dormant'];
 const MEETING_DAY_OPTIONS = ['Undecided', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MEETING_LENGTH_OPTIONS = ['Undecided', '30min', '45min', '60min', '90min', '120+min'];
 const CLUB_INTEREST_OPTIONS = ['Web Dev', 'Game Dev', 'CAD', 'Hardware', 'Hackathons', 'Mobile App Dev, and Arduino', "Other"];
+
+export async function getClubWebsite(clubName) {
+	const base = getAirtableBase();
+	
+	try {
+		const records = await base('Clubs').select({
+			filterByFormula: `LOWER({club_name}) = LOWER("${escapeAirtableString(clubName)}")`,
+			maxRecords: 1,
+			fields: ['club_name', 'club_website']
+		}).firstPage();
+
+		if (records.length === 0) {
+			return null;
+		}
+
+		return {
+			clubName: records[0].get('club_name') || '',
+			clubWebsite: records[0].get('club_website') || ''
+		};
+	} catch (error) {
+		console.error('Error getting club website from Airtable:', error);
+		return null;
+	}
+}
 
 export async function getClubSettings(clubName) {
 	const base = getAirtableBase();
@@ -198,7 +223,8 @@ export async function getClubSettings(clubName) {
 			mapOptOut: !!record.get('map-opt-out'),
 			callMeetingDays: record.get('call_meeting_days') || [],
 			callMeetingLength: record.get('call_meeting_length') || '',
-			callClubIntrest: record.get('call_club_intrest') || []
+			callClubIntrest: record.get('call_club_intrest') || [],
+			clubWebsite: record.get('club_website') || ''
 		};
 	} catch (error) {
 		console.error('Error getting club settings from Airtable:', error);
@@ -242,6 +268,14 @@ export async function updateClubSettings(clubName, updates, currentStatus) {
 				if (value === 'Active' && currentStatus === 'Dormant') {
 					throw new Error('Cannot reactivate a dormant club');
 				}
+			}
+			if (key === 'club_website') {
+				if (value && typeof value === 'string' && value.trim()) {
+					filteredUpdates[key] = sanitizeUrl(value);
+				} else {
+					filteredUpdates[key] = '';
+				}
+				continue;
 			}
 			filteredUpdates[key] = value;
 		}

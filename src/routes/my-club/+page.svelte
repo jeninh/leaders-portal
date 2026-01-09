@@ -30,6 +30,10 @@
 	function closeHelpModal() {
 		helpModal = { open: false, clubName: null, loading: false, ambassador: null, error: null };
 	}
+
+	function getClubSlug(name) {
+		return name.toLowerCase().replace(/\s+/g, '-');
+	}
 </script>
 
 <svelte:head>
@@ -107,6 +111,14 @@
 							</div>
 						{/if}
 
+						{#if club.clubWebsite}
+							<div class="website-section">
+								<span class="website-label">Club website:</span>
+								<a href="https://hack.club/club/{getClubSlug(club.name)}" target="_blank" rel="noopener noreferrer" class="website-link">
+									hack.club/club/{getClubSlug(club.name)}
+								</a>
+							</div>
+						{/if}
 
 					</div>
 				{/each}
@@ -331,6 +343,32 @@
 	}
 
 	.invite-link:hover {
+		text-decoration: underline;
+	}
+
+	.website-section {
+		margin-top: 12px;
+		padding-top: 12px;
+		border-top: 1px solid #e0e6ed;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.website-label {
+		font-size: 14px;
+		font-weight: 600;
+		color: #8492a6;
+	}
+
+	.website-link {
+		font-size: 14px;
+		font-weight: 600;
+		color: #338eda;
+		text-decoration: none;
+	}
+
+	.website-link:hover {
 		text-decoration: underline;
 	}
 
