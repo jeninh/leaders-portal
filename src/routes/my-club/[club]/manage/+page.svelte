@@ -149,7 +149,7 @@
 					{#if clubWebsite}
 						<p class="redirect-link">
 							<span class="redirect-label">Club redirect:</span>
-							<a href="/redirect/{getClubSlug(club.name)}" target="_blank" rel="noopener noreferrer">
+							<a href="https://hack.club/club/{getClubSlug(club.name)}" target="_blank" rel="noopener noreferrer">
 								hack.club/club/{getClubSlug(club.name)}
 							</a>
 						</p>
