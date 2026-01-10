@@ -10,7 +10,10 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"db:init": "node scripts/init-db.js",
 		"db:migrate": "knex migrate:latest",
-		"db:rollback": "knex migrate:rollback"
+		"db:rollback": "knex migrate:rollback",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-node": "^5.4.0",
@@ -19,7 +22,8 @@
 		"@tailwindcss/vite": "^4.1.14",
 		"svelte": "^5.41.0",
 		"tailwindcss": "^4.1.14",
-		"vite": "^7.1.10"
+		"vite": "^7.1.10",
+		"vitest": "^2.1.9"
 	},
 	"dependencies": {
 		"@hackclub/icons": "^0.0.15",
