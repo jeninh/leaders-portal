@@ -172,6 +172,9 @@
 		<a href="https://hackclub.com/map" target="_blank" rel="noopener noreferrer" class="footer-button">
 			Club Map
 		</a>
+		<a href="/posters" class="footer-button">
+			Club Posters
+		</a>
 	</footer>
 </div>
 
