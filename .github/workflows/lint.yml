@@ -1,4 +1,4 @@
-name: Vitest
+name: Lint
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  vitest:
+  svelte-check:
+    name: Svelte Check
     runs-on: ubuntu-latest
 
     steps:
@@ -23,9 +24,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
-      - name: Run tests with coverage
-        run: npm run test:coverage
-        continue-on-error: true
+      - name: Run svelte-check
+        run: npm run check
