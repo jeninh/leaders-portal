@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          AIRTABLE_API_KEY: trains
+          AIRTABLE_BASE_ID: trains
+          AIRTABLE_TABLE_NAME: trains
+          CLUB_API_KEY: trains
+          DATABASE_URL: postgresql://trains:trains@localhost:5432/trains
+          HACKCLUB_AUTH_CLIENT_ID: trains
+          HACKCLUB_AUTH_CLIENT_SECRET: trains
+          HACKCLUB_AUTH_REDIRECT_URI: http://localhost:5173/auth/callback
+          SESSION_SECRET: trainstrainstrainstrainstrainstrainstr
+          TOKEN_ENC_KEY: trainstrainstrainstrainstrainstrainstr

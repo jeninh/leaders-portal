@@ -1,0 +1,38 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            AIRTABLE_API_KEY=trains
+            AIRTABLE_BASE_ID=trains
+            AIRTABLE_TABLE_NAME=trains
+            CLUB_API_KEY=trains
+            DATABASE_URL=postgresql://trains:trains@localhost:5432/trains
+            HACKCLUB_AUTH_CLIENT_ID=trains
+            HACKCLUB_AUTH_CLIENT_SECRET=trains
+            HACKCLUB_AUTH_REDIRECT_URI=http://localhost:5173/auth/callback
+            SESSION_SECRET=trainstrainstrainstrainstrainstr
+            TOKEN_ENC_KEY=trainstrainstrainstrainstrainstr
