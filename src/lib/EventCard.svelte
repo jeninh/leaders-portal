@@ -3,6 +3,8 @@
 	export let openEvent;
 	export let onComplete;
 	export let isLoggedIn;
+	export let highlighted = false;
+	export let highlightColor = '#ec3750';
 
 	async function toggleComplete(e) {
 		e.stopPropagation();
@@ -10,7 +12,7 @@
 	}
 </script>
 
-<div class="event-card" style="background-color: {event.color}; {event.backgroundUrl ? `background-image: url('${event.backgroundUrl}'); background-size: cover; background-position: center;` : ''}" on:click={() => openEvent(event)} on:keydown={(e) => e.key === 'Enter' && openEvent(event)} role="button" tabindex="0">
+<div class="event-card" class:highlighted style="background-color: {event.color}; {event.backgroundUrl ? `background-image: url('${event.backgroundUrl}'); background-size: cover; background-position: center;` : ''} {highlighted ? `--highlight-color: ${highlightColor};` : ''}" on:click={() => openEvent(event)} on:keydown={(e) => e.key === 'Enter' && openEvent(event)} role="button" tabindex="0">
 	{#if event.backgroundUrl}
 		<div class="background-overlay"></div>
 	{/if}
@@ -32,7 +34,7 @@
 		<img src={event.icon} alt="{event.title} icon" class="event-icon" />
 		{/if}
 		<h3 style="color: {event.textColor};">{event.title}</h3>
-		<span class="type-badge">{event.type}</span>
+		<span class="type-badge" class:type-badge-highlighted={highlighted} style="background-color: {event.buttonColor}; color: {event.buttonTextColor};">{event.type}</span>
 		<span class="et" style="color: {event.textColor};">Estimated time: {event.et}</span>
 	</div>
 </div>
@@ -62,6 +64,14 @@
 
 	.event-card:hover {
 		transform: translateY(-2px);
+	}
+
+	.event-card.highlighted {
+		border: 3px solid var(--highlight-color, #ec3750);
+	}
+
+	.type-badge-highlighted {
+		background: var(--highlight-color, #ec3750);
 	}
 
 	.event-compact {

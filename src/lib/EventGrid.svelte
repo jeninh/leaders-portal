@@ -7,12 +7,19 @@
 	export let onComplete;
 	export let isLoggedIn;
 
-	$: filteredEvents = category ? events.filter(e => e.category === category) : events;
+	$: filteredEvents = (() => {
+		const filtered = category ? events.filter(e => e.category === category) : events;
+		return [...filtered].sort((a, b) => {
+			if (a.type === 'Event' && b.type !== 'Event') return -1;
+			if (a.type !== 'Event' && b.type === 'Event') return 1;
+			return 0;
+		});
+	})();
 </script>
 
 <div class="events-grid">
 	{#each filteredEvents as event}
-		<EventCard {event} {openEvent} {onComplete} {isLoggedIn} />
+		<EventCard {event} {openEvent} {onComplete} {isLoggedIn} highlighted={event.type === 'Event'} highlightColor={event.buttonColor} />
 	{/each}
 </div>
 

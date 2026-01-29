@@ -35,7 +35,7 @@
 	}
 
 	.event-banner:hover {
-		transform: translateY(-2px);
+		transform: scale(1.02);
 	}
 
 	.banner-overlay {
@@ -63,7 +63,7 @@
 	}
 
 	.banner-description {
-		font-size: 18px;
+		font-size: 25px;
 		margin: 0;
 		max-width: 600px;
 		line-height: 1.5;

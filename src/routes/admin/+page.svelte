@@ -65,7 +65,7 @@
             </div>
             <div class="stat-value">{data.stats.members.total}</div>
             <div class="stat-details">
-                <span class="stat-detail">{data.stats.members.clubCount} clubs</span>
+                <span class="stat-detail">across {data.stats.members.clubCount} clubs</span>
             </div>
         </div>
 
@@ -76,7 +76,7 @@
             </div>
             <div class="stat-value">{data.stats.ships.total}</div>
             <div class="stat-details">
-                <span class="stat-detail">{data.stats.ships.clubCount} clubs</span>
+                <span class="stat-detail">across {data.stats.ships.clubCount} clubs</span>
             </div>
         </div>
 

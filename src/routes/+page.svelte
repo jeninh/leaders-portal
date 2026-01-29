@@ -2,18 +2,21 @@
 	import { onMount } from 'svelte';
 	import EventGrid from '$lib/EventGrid.svelte';
 	import EventModal from '$lib/EventModal.svelte';
-	import EventBanner from '$lib/EventBanner.svelte';
+
+	import EventsView from '$lib/EventsView.svelte';
+	import ToolsView from '$lib/ToolsView.svelte';
 
 	let { data } = $props();
 	let events = $state([]);
 	let selectedEvent = $state(null);
+	let activeTab = $state('ysws');
 	let hasWebdevEvents = $derived(events.some(e => e.category === 'Webdev'));
 	let hasCadEvents = $derived(events.some(e => e.category === 'CAD'));
 	let hasGamedevEvents = $derived(events.some(e => e.category === 'GameDev'));
 	let hasHardwareEvents = $derived(events.some(e => e.category === 'Hardware'));
 	let hasOtherEvents = $derived(events.some(e => e.category === 'Other'));
 	let hasCompletedEvents = $derived(events.some(e => e.completed));
-	let bannerEvent = $derived(events.find(e => e.category === 'Banner'));
+	let bannerEvents = $derived(events.filter(e => e.category === 'Banner'));
 
 	onMount(async () => {
 		await fetchEvents();
@@ -103,9 +106,30 @@
 		</div>
 	</header>
 
-	{#if bannerEvent}
-		<EventBanner event={bannerEvent} />
-	{/if}
+	<div class="tab-selector">
+		<button 
+			class="tab-button" 
+			class:active={activeTab === 'ysws'}
+			onclick={() => activeTab = 'ysws'}
+		>
+			YSWS
+		</button>
+		<button 
+			class="tab-button" 
+			class:active={activeTab === 'events'}
+			onclick={() => activeTab = 'events'}
+		>
+			Events
+		</button>
+		<button 
+			class="tab-button" 
+			class:active={activeTab === 'tools'}
+			onclick={() => activeTab = 'tools'}
+		>
+			Tools
+		</button>
+	</div>
+
 
 	<a href="https://guide.leaders.hackclub.com/" target="_blank" rel="noopener noreferrer" class="help-button" aria-label="Club Leaders Guide">
 		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -116,46 +140,52 @@
 	</a>
 
 	<main>
-		{#if hasWebdevEvents}
-			<div class="category-bubble webdev">
-				<h2 class="section-title">Web development series:</h2>
-				<EventGrid {events} category="Webdev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-			</div>
-		{/if}
+		{#if activeTab === 'ysws'}
+			{#if hasWebdevEvents}
+				<div class="category-bubble webdev">
+					<h2 class="section-title">Web development series:</h2>
+					<EventGrid {events} category="Webdev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+				</div>
+			{/if}
 
-		{#if hasCadEvents}
-			<div class="category-bubble cad">
-				<h2 class="section-title">CAD series:</h2>
-				<EventGrid {events} category="CAD" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-			</div>
-		{/if}
+			{#if hasCadEvents}
+				<div class="category-bubble cad">
+					<h2 class="section-title">CAD series:</h2>
+					<EventGrid {events} category="CAD" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+				</div>
+			{/if}
 
-		{#if hasGamedevEvents}
-			<div class="category-bubble gamedev">
-				<h2 class="section-title">Game Development Series:</h2>
-				<EventGrid {events} category="GameDev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-			</div>
-		{/if}
-		
-		{#if hasHardwareEvents}
-			<div class="category-bubble hardware">
-				<h2 class="section-title">Hardware Series:</h2>
-				<EventGrid {events} category="Hardware" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-			</div>
-		{/if}
+			{#if hasGamedevEvents}
+				<div class="category-bubble gamedev">
+					<h2 class="section-title">Game Development Series:</h2>
+					<EventGrid {events} category="GameDev" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+				</div>
+			{/if}
+			
+			{#if hasHardwareEvents}
+				<div class="category-bubble hardware">
+					<h2 class="section-title">Hardware Series:</h2>
+					<EventGrid {events} category="Hardware" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+				</div>
+			{/if}
 
-		{#if hasOtherEvents}
-			<div class="category-bubble other">
-				<h2 class="section-title">Other Clubs YSWS:</h2>
-				<EventGrid {events} category="Other" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-			</div>
-		{/if}
+			{#if hasOtherEvents}
+				<div class="category-bubble other">
+					<h2 class="section-title">Other Clubs YSWS:</h2>
+					<EventGrid {events} category="Other" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+				</div>
+			{/if}
 
-		{#if hasCompletedEvents}
-			<div class="category-bubble completed">
-				<h2 class="section-title">Completed YSWS:</h2>
-				<EventGrid {events} category="Completed" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
-			</div>
+			{#if hasCompletedEvents}
+				<div class="category-bubble completed">
+					<h2 class="section-title">Completed YSWS:</h2>
+					<EventGrid {events} category="Completed" {openEvent} onComplete={handleComplete} isLoggedIn={!!data.user} />
+				</div>
+			{/if}
+		{:else if activeTab === 'events'}
+			<EventsView user={data.user} {bannerEvents} />
+		{:else if activeTab === 'tools'}
+			<ToolsView user={data.user} />
 		{/if}
 	</main>
 
@@ -198,6 +228,40 @@
 		max-width: 1024px;
 		margin: 0 auto;
 		padding: 32px 16px;
+	}
+
+	.tab-selector {
+		display: flex;
+		justify-content: center;
+		gap: 8px;
+		margin-bottom: 24px;
+		padding: 8px;
+		background: #f9fafc;
+		border-radius: 12px;
+		border: 2px solid #e0e6ed;
+	}
+
+	.tab-button {
+		padding: 12px 32px;
+		border-radius: 8px;
+		border: none;
+		background: transparent;
+		color: #8492a6;
+		font-weight: 600;
+		font-size: 16px;
+		font-family: inherit;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.tab-button:hover {
+		background: #e0e6ed;
+		color: #1f2d3d;
+	}
+
+	.tab-button.active {
+		background: #ec3750;
+		color: white;
 	}
 
 	header {
@@ -436,6 +500,16 @@
 		.nav-button {
 			padding: 8px 14px;
 			font-size: 13px;
+		}
+
+		.tab-selector {
+			padding: 6px;
+			gap: 4px;
+		}
+
+		.tab-button {
+			padding: 10px 20px;
+			font-size: 14px;
 		}
 
 		.category-bubble {
